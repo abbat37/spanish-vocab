@@ -1,7 +1,17 @@
 from flask import Flask, render_template, request
 import random
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
+
+# Configure app from environment variables
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-fallback')
+app.config['ENV'] = os.getenv('FLASK_ENV', 'production')
+app.config['DEBUG'] = os.getenv('FLASK_DEBUG', 'False') == 'True'
 
 # Dictionary of Spanish words by theme and type
 WORD_DATABASE = {
