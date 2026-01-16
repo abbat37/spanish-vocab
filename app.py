@@ -265,6 +265,14 @@ def generate_sentences(theme, word_type):
 
     return sentences
 
+@app.after_request
+def add_header(response):
+    """Add headers to prevent caching during development"""
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     sentences = []
