@@ -167,14 +167,13 @@
         <form method="POST">
             <div class="form-group">
                 <label for="theme">Theme</label>
-                <input
-                    type="text"
-                    id="theme"
-                    name="theme"
-                    placeholder="e.g., cooking, work, sports, restaurant"
-                    value="{{ theme }}"
-                    required
-                >
+                <select id="theme" name="theme" required>
+                    <option value="">Select a theme...</option>
+                    <option value="cooking" {% if theme == 'cooking' %}selected{% endif %}>Cooking</option>
+                    <option value="work" {% if theme == 'work' %}selected{% endif %}>Work</option>
+                    <option value="sports" {% if theme == 'sports' %}selected{% endif %}>Sports</option>
+                    <option value="restaurant" {% if theme == 'restaurant' %}selected{% endif %}>Restaurant</option>
+                </select>
             </div>
 
             <div class="form-group">
