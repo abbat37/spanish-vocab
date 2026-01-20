@@ -2,9 +2,9 @@ from flask import Flask, render_template, request, session, jsonify
 import random
 import os
 import uuid
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 from database import db, init_db, VocabularyWord, SentenceTemplate, UserSession, WordPractice
-from sqlalchemy import func
+from sqlalchemy import func # type: ignore
 
 # Load environment variables from .env file
 load_dotenv()
@@ -22,6 +22,17 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database
 init_db(app)
+
+# Check if database needs seeding
+with app.app_context():
+    word_count = VocabularyWord.query.count()
+    if word_count == 0:
+        print("\n" + "="*60)
+        print("⚠️  WARNING: Database is empty!")
+        print("="*60)
+        print("The database has no vocabulary words.")
+        print("Please run: python3 seed_database.py")
+        print("="*60 + "\n")
 
 
 def get_or_create_session_id():
