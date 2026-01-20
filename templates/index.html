@@ -309,7 +309,8 @@
                         <div class="english">{{ sentence.english|safe }}</div>
                     </div>
                     <button class="learn-btn {% if sentence.is_learned %}learned{% endif %}"
-                            onclick="markLearned({{ sentence.word_id }}, this)">
+                            data-word-id="{{ sentence.word_id }}"
+                            data-is-learned="{{ sentence.is_learned|lower }}">
                         {% if sentence.is_learned %}✓ Learned!{% else %}✓ Learned{% endif %}
                     </button>
                 </div>
@@ -324,6 +325,17 @@
     </div>
 
     <script>
+        // Use event delegation for better performance and no inline handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.addEventListener('click', function(e) {
+                if (e.target.classList.contains('learn-btn')) {
+                    const button = e.target;
+                    const wordId = parseInt(button.getAttribute('data-word-id'));
+                    markLearned(wordId, button);
+                }
+            });
+        });
+
         function markLearned(wordId, button) {
             // Send request to mark word as learned
             fetch('/api/mark-learned', {
