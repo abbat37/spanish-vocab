@@ -1,8 +1,10 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session, jsonify
 import random
 import os
+import uuid
 from dotenv import load_dotenv
-from database import db, init_db, VocabularyWord, SentenceTemplate
+from database import db, init_db, VocabularyWord, SentenceTemplate, UserSession, WordPractice
+from sqlalchemy import func
 
 # Load environment variables from .env file
 load_dotenv()
@@ -22,7 +24,57 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 init_db(app)
 
 
-def generate_sentences(theme, word_type):
+def get_or_create_session_id():
+    """Get or create a session ID for tracking user progress"""
+    if 'user_session_id' not in session:
+        session['user_session_id'] = str(uuid.uuid4())
+
+        # Create user session in database
+        user_session = UserSession(session_id=session['user_session_id'])
+        db.session.add(user_session)
+        db.session.commit()
+
+    return session['user_session_id']
+
+
+def get_user_stats(session_id):
+    """Get user progress statistics"""
+    total_practiced = WordPractice.query.filter_by(session_id=session_id).count()
+    total_learned = WordPractice.query.filter_by(session_id=session_id, marked_learned=True).count()
+
+    # Get stats by theme
+    theme_stats = db.session.query(
+        WordPractice.theme,
+        func.count(WordPractice.id).label('count')
+    ).filter_by(session_id=session_id).group_by(WordPractice.theme).all()
+
+    return {
+        'total_practiced': total_practiced,
+        'total_learned': total_learned,
+        'by_theme': {theme: count for theme, count in theme_stats}
+    }
+
+
+def record_word_practice(session_id, word_id, theme, word_type):
+    """Record that a user practiced a word"""
+    # Check if already practiced in this session
+    existing = WordPractice.query.filter_by(
+        session_id=session_id,
+        word_id=word_id
+    ).first()
+
+    if not existing:
+        practice = WordPractice(
+            session_id=session_id,
+            word_id=word_id,
+            theme=theme,
+            word_type=word_type
+        )
+        db.session.add(practice)
+        db.session.commit()
+
+
+def generate_sentences(theme, word_type, session_id=None):
     """Generate 5 sentences with new Spanish words from database"""
     # Query vocabulary words from database
     words = VocabularyWord.query.filter_by(theme=theme, word_type=word_type).all()
@@ -59,10 +111,21 @@ def generate_sentences(theme, word_type):
             f'<mark>{word.english_translation}</mark>'
         )
 
+        # Check if this word is marked as learned
+        is_learned = False
+        if session_id:
+            practice = WordPractice.query.filter_by(
+                session_id=session_id,
+                word_id=word.id
+            ).first()
+            if practice and practice.marked_learned:
+                is_learned = True
+
         sentences.append({
             'spanish': spanish_sentence,
             'english': english_sentence,
-            'word_id': word.id
+            'word_id': word.id,
+            'is_learned': is_learned
         })
 
     return sentences
@@ -81,15 +144,55 @@ def index():
     sentences = []
     theme = ''
     word_type = ''
+    stats = None
+
+    # Get or create session
+    session_id = get_or_create_session_id()
+    stats = get_user_stats(session_id)
 
     if request.method == 'POST':
         theme = request.form.get('theme', '').lower()
         word_type = request.form.get('word_type', '').lower()
 
         if theme and word_type:
-            sentences = generate_sentences(theme, word_type)
+            sentences = generate_sentences(theme, word_type, session_id)
 
-    return render_template('index.html', sentences=sentences, theme=theme, word_type=word_type)
+            # Record practice for each word
+            for sentence in sentences:
+                record_word_practice(session_id, sentence['word_id'], theme, word_type)
+
+            # Refresh stats after recording practice
+            stats = get_user_stats(session_id)
+
+    return render_template('index.html', sentences=sentences, theme=theme, word_type=word_type, stats=stats)
+
+
+@app.route('/api/mark-learned', methods=['POST'])
+def mark_learned():
+    """API endpoint to mark a word as learned"""
+    session_id = get_or_create_session_id()
+    word_id = request.json.get('word_id')
+
+    if not word_id:
+        return jsonify({'error': 'word_id is required'}), 400
+
+    # Find the practice record
+    practice = WordPractice.query.filter_by(
+        session_id=session_id,
+        word_id=word_id
+    ).first()
+
+    if practice:
+        practice.marked_learned = not practice.marked_learned  # Toggle
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'marked_learned': practice.marked_learned,
+            'stats': get_user_stats(session_id)
+        })
+    else:
+        return jsonify({'error': 'Practice record not found'}), 404
+
 
 if __name__ == '__main__':
     app.run(debug=True)

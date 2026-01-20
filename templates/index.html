@@ -148,6 +148,92 @@
             font-style: italic;
         }
 
+        .stats-container {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .stats-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 5px;
+        }
+
+        .sentence-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .learn-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .learn-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .learn-btn.learned {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .learn-btn.learned:hover {
+            background: #059669;
+            border-color: #059669;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 25px;
@@ -163,6 +249,30 @@
     <div class="container">
         <h1>🇪🇸 Spanish Word Learner</h1>
         <p class="subtitle">Learn 5 new Spanish words daily</p>
+
+        {% if stats and stats.total_practiced > 0 %}
+        <div class="stats-container">
+            <div class="stats-title">📊 Your Progress</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value">{{ stats.total_practiced }}</span>
+                    <span class="stat-label">Words Practiced</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ stats.total_learned }}</span>
+                    <span class="stat-label">Marked Learned</span>
+                </div>
+                {% if stats.by_theme %}
+                {% for theme_name, count in stats.by_theme.items() %}
+                <div class="stat-item">
+                    <span class="stat-value">{{ count }}</span>
+                    <span class="stat-label">{{ theme_name|title }}</span>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
 
         <form method="POST">
             <div class="form-group">
@@ -193,8 +303,16 @@
         <div class="sentences">
             {% for sentence in sentences %}
             <div class="sentence-card">
-                <div class="spanish">{{ sentence.spanish|safe }}</div>
-                <div class="english">{{ sentence.english|safe }}</div>
+                <div class="sentence-header">
+                    <div style="flex: 1;">
+                        <div class="spanish">{{ sentence.spanish|safe }}</div>
+                        <div class="english">{{ sentence.english|safe }}</div>
+                    </div>
+                    <button class="learn-btn {% if sentence.is_learned %}learned{% endif %}"
+                            onclick="markLearned({{ sentence.word_id }}, this)">
+                        {% if sentence.is_learned %}✓ Learned!{% else %}✓ Learned{% endif %}
+                    </button>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -204,5 +322,69 @@
         </div>
         {% endif %}
     </div>
+
+    <script>
+        function markLearned(wordId, button) {
+            // Send request to mark word as learned
+            fetch('/api/mark-learned', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ word_id: wordId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Toggle button state
+                    if (data.marked_learned) {
+                        button.classList.add('learned');
+                        button.textContent = '✓ Learned!';
+                    } else {
+                        button.classList.remove('learned');
+                        button.textContent = '✓ Learned';
+                    }
+
+                    // Update stats if present
+                    if (data.stats) {
+                        updateStats(data.stats);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to update learned status');
+            });
+        }
+
+        function updateStats(stats) {
+            // Update stats in the DOM directly (no page reload!)
+            const totalPracticedEl = document.querySelector('.stat-value');
+            const totalLearnedEl = document.querySelectorAll('.stat-value')[1];
+
+            if (totalPracticedEl) {
+                totalPracticedEl.textContent = stats.total_practiced;
+            }
+
+            if (totalLearnedEl) {
+                totalLearnedEl.textContent = stats.total_learned;
+            }
+
+            // Update theme stats
+            const themeStats = document.querySelectorAll('.stat-item');
+            if (themeStats.length > 2 && stats.by_theme) {
+                let themeIndex = 2; // Start after total_practiced and total_learned
+                for (const [theme, count] of Object.entries(stats.by_theme)) {
+                    if (themeStats[themeIndex]) {
+                        const valueEl = themeStats[themeIndex].querySelector('.stat-value');
+                        if (valueEl) {
+                            valueEl.textContent = count;
+                        }
+                        themeIndex++;
+                    }
+                }
+            }
+        }
+    </script>
 </body>
 </html>
