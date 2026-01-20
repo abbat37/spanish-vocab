@@ -25,7 +25,7 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 700px;
+            max-width: 1400px;
             width: 100%;
             padding: 40px;
         }
@@ -152,8 +152,33 @@
             background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             border: 2px solid #e0e0e0;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+            margin-top: 30px;
+        }
+
+        @media (min-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 380px 1fr;
+                align-items: start;
+            }
+
+            .sidebar {
+                position: sticky;
+                top: 20px;
+            }
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .stats-title {
@@ -168,7 +193,7 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
 
@@ -250,78 +275,86 @@
         <h1>🇪🇸 Spanish Word Learner</h1>
         <p class="subtitle">Learn 5 new Spanish words daily</p>
 
-        {% if stats and stats.total_practiced > 0 %}
-        <div class="stats-container">
-            <div class="stats-title">📊 Your Progress</div>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <span class="stat-value">{{ stats.total_practiced }}</span>
-                    <span class="stat-label">Words Practiced</span>
+        <div class="main-layout">
+            <!-- Sidebar: Form + Stats (Sticky) -->
+            <div class="sidebar">
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="theme">Theme</label>
+                        <select id="theme" name="theme" required>
+                            <option value="">Select a theme...</option>
+                            <option value="cooking" {% if theme == 'cooking' %}selected{% endif %}>Cooking</option>
+                            <option value="work" {% if theme == 'work' %}selected{% endif %}>Work</option>
+                            <option value="sports" {% if theme == 'sports' %}selected{% endif %}>Sports</option>
+                            <option value="restaurant" {% if theme == 'restaurant' %}selected{% endif %}>Restaurant</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="word_type">Word Type</label>
+                        <select id="word_type" name="word_type" required>
+                            <option value="">Select a type...</option>
+                            <option value="verb" {% if word_type == 'verb' %}selected{% endif %}>Verb</option>
+                            <option value="noun" {% if word_type == 'noun' %}selected{% endif %}>Noun</option>
+                            <option value="adj" {% if word_type == 'adj' %}selected{% endif %}>Adjective</option>
+                        </select>
+                    </div>
+
+                    <button type="submit">Generate Sentences</button>
+                </form>
+
+                {% if stats and stats.total_practiced > 0 %}
+                <div class="stats-container">
+                    <div class="stats-title">📊 Your Progress</div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-value">{{ stats.total_practiced }}</span>
+                            <span class="stat-label">Words Practiced</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ stats.total_learned }}</span>
+                            <span class="stat-label">Marked Learned</span>
+                        </div>
+                        {% if stats.by_theme %}
+                        {% for theme_name, count in stats.by_theme.items() %}
+                        <div class="stat-item">
+                            <span class="stat-value">{{ count }}</span>
+                            <span class="stat-label">{{ theme_name|title }}</span>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-value">{{ stats.total_learned }}</span>
-                    <span class="stat-label">Marked Learned</span>
+                {% endif %}
+            </div>
+
+            <!-- Main Content: Sentences -->
+            <div class="main-content">
+                {% if sentences %}
+                <div class="sentences">
+                    {% for sentence in sentences %}
+                    <div class="sentence-card">
+                        <div class="sentence-header">
+                            <div style="flex: 1;">
+                                <div class="spanish">{{ sentence.spanish|safe }}</div>
+                                <div class="english">{{ sentence.english|safe }}</div>
+                            </div>
+                            <button class="learn-btn {% if sentence.is_learned %}learned{% endif %}"
+                                    data-word-id="{{ sentence.word_id }}"
+                                    data-is-learned="{{ sentence.is_learned|lower }}">
+                                {% if sentence.is_learned %}✓ Learned!{% else %}✓ Learned{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% if stats.by_theme %}
-                {% for theme_name, count in stats.by_theme.items() %}
-                <div class="stat-item">
-                    <span class="stat-value">{{ count }}</span>
-                    <span class="stat-label">{{ theme_name|title }}</span>
+                {% elif theme and word_type %}
+                <div class="no-results">
+                    No sentences found for this theme and word type combination.
                 </div>
-                {% endfor %}
                 {% endif %}
             </div>
         </div>
-        {% endif %}
-
-        <form method="POST">
-            <div class="form-group">
-                <label for="theme">Theme</label>
-                <select id="theme" name="theme" required>
-                    <option value="">Select a theme...</option>
-                    <option value="cooking" {% if theme == 'cooking' %}selected{% endif %}>Cooking</option>
-                    <option value="work" {% if theme == 'work' %}selected{% endif %}>Work</option>
-                    <option value="sports" {% if theme == 'sports' %}selected{% endif %}>Sports</option>
-                    <option value="restaurant" {% if theme == 'restaurant' %}selected{% endif %}>Restaurant</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="word_type">Word Type</label>
-                <select id="word_type" name="word_type" required>
-                    <option value="">Select a type...</option>
-                    <option value="verb" {% if word_type == 'verb' %}selected{% endif %}>Verb</option>
-                    <option value="noun" {% if word_type == 'noun' %}selected{% endif %}>Noun</option>
-                    <option value="adj" {% if word_type == 'adj' %}selected{% endif %}>Adjective</option>
-                </select>
-            </div>
-
-            <button type="submit">Generate Sentences</button>
-        </form>
-
-        {% if sentences %}
-        <div class="sentences">
-            {% for sentence in sentences %}
-            <div class="sentence-card">
-                <div class="sentence-header">
-                    <div style="flex: 1;">
-                        <div class="spanish">{{ sentence.spanish|safe }}</div>
-                        <div class="english">{{ sentence.english|safe }}</div>
-                    </div>
-                    <button class="learn-btn {% if sentence.is_learned %}learned{% endif %}"
-                            data-word-id="{{ sentence.word_id }}"
-                            data-is-learned="{{ sentence.is_learned|lower }}">
-                        {% if sentence.is_learned %}✓ Learned!{% else %}✓ Learned{% endif %}
-                    </button>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% elif theme and word_type %}
-        <div class="no-results">
-            No sentences found for this theme and word type combination.
-        </div>
-        {% endif %}
     </div>
 
     <script>
