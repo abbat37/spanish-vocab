@@ -2,7 +2,6 @@
 Script to populate the database with Spanish vocabulary words and sentence templates
 Run this once to initialize the database with data
 """
-from app import app
 from database import db, VocabularyWord, SentenceTemplate
 
 # Your existing word database
@@ -152,14 +151,22 @@ def seed_vocabulary():
                 spanish_word = word_entry.split(' (')[0]
                 english_translation = word_entry.split('(')[1].rstrip(')')
 
-                vocab = VocabularyWord(
+                # Check if word already exists to avoid duplicates
+                existing = VocabularyWord.query.filter_by(
                     theme=theme,
                     word_type=word_type,
-                    spanish_word=spanish_word,
-                    english_translation=english_translation
-                )
-                db.session.add(vocab)
-                count += 1
+                    spanish_word=spanish_word
+                ).first()
+
+                if not existing:
+                    vocab = VocabularyWord(
+                        theme=theme,
+                        word_type=word_type,
+                        spanish_word=spanish_word,
+                        english_translation=english_translation
+                    )
+                    db.session.add(vocab)
+                    count += 1
 
     db.session.commit()
     print(f"✓ Added {count} vocabulary words")
@@ -173,21 +180,31 @@ def seed_sentence_templates():
     for theme, word_types in SENTENCE_TEMPLATES.items():
         for word_type, templates in word_types.items():
             for spanish_template, english_template in templates:
-                template = SentenceTemplate(
+                # Check if template already exists to avoid duplicates
+                existing = SentenceTemplate.query.filter_by(
                     theme=theme,
                     word_type=word_type,
-                    spanish_template=spanish_template,
-                    english_template=english_template
-                )
-                db.session.add(template)
-                count += 1
+                    spanish_template=spanish_template
+                ).first()
+
+                if not existing:
+                    template = SentenceTemplate(
+                        theme=theme,
+                        word_type=word_type,
+                        spanish_template=spanish_template,
+                        english_template=english_template
+                    )
+                    db.session.add(template)
+                    count += 1
 
     db.session.commit()
     print(f"✓ Added {count} sentence templates")
 
 
 def seed_database():
-    """Main function to seed the database"""
+    """Main function to seed the database - requires app context"""
+    from app import app
+
     with app.app_context():
         # Check if database is already seeded
         existing_words = VocabularyWord.query.count()

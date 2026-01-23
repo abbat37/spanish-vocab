@@ -23,16 +23,27 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize database
 init_db(app)
 
-# Check if database needs seeding
+# Auto-seed database on startup if empty
 with app.app_context():
     word_count = VocabularyWord.query.count()
     if word_count == 0:
         print("\n" + "="*60)
-        print("⚠️  WARNING: Database is empty!")
+        print("⚠️  Database is empty - auto-seeding...")
         print("="*60)
-        print("The database has no vocabulary words.")
-        print("Please run: python3 seed_database.py")
-        print("="*60 + "\n")
+
+        # Import and run seeding
+        try:
+            from seed_database import seed_vocabulary, seed_sentence_templates
+            seed_vocabulary()
+            seed_sentence_templates()
+            print("✅ Database seeded successfully on startup!")
+            print(f"Total words: {VocabularyWord.query.count()}")
+            print(f"Total templates: {SentenceTemplate.query.count()}")
+            print("="*60 + "\n")
+        except Exception as e:
+            print(f"❌ Error seeding database: {e}")
+            print("Please run manually: python3 seed_database.py")
+            print("="*60 + "\n")
 
 
 def get_or_create_session_id():
