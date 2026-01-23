@@ -123,9 +123,36 @@ jobs:
           black --check --diff .
         continue-on-error: true  # Don't fail the build on formatting issues (yet)
 
-# NOTE: We'll add the deployment job in the next step
-# For now, this pipeline will:
-# 1. Run on every push/PR to main
-# 2. Test your code automatically
-# 3. Check code quality
-# 4. Report results back to GitHub
+  # JOB 3: DEPLOY
+  # Deploy to Render only if tests pass
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+
+    # CRITICAL: Only run this job if the test job succeeded
+    needs: [test, lint]
+    # 'needs' creates a dependency: deploy won't run until test and lint finish
+    # If either test or lint fails, deploy is automatically skipped
+
+    # CRITICAL: Only deploy from main branch, not from PRs
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # github.ref: The branch that triggered this workflow
+    # github.event_name: The type of event (push vs pull_request)
+    # This ensures we only deploy when:
+    #   1. Code is pushed to main (not a PR)
+    #   2. Tests have passed
+
+    steps:
+      - name: Trigger Render Deployment
+        run: |
+          # Make HTTP POST request to Render's deploy hook
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+        # ${{ secrets.RENDER_DEPLOY_HOOK }} pulls the secret you added in GitHub
+        # curl -X POST sends a POST request to trigger deployment
+        # Render receives this and starts building/deploying your app
+
+      - name: Deployment notification
+        run: |
+          echo "🚀 Deployment triggered successfully!"
+          echo "Check Render dashboard for deployment status"
+          echo "Your app will be live in ~2-3 minutes"
