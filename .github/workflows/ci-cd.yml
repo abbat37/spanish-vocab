@@ -1,0 +1,131 @@
+# CI/CD Pipeline for Spanish Vocabulary App
+# This workflow automatically tests and deploys your application
+
+name: CI/CD Pipeline
+
+# TRIGGERS: When should this workflow run?
+on:
+  # Run on pushes to main branch
+  push:
+    branches: [ main ]
+
+  # Run on pull requests targeting main branch
+  pull_request:
+    branches: [ main ]
+
+  # Allow manual triggering from GitHub UI (useful for testing)
+  workflow_dispatch:
+
+# JOBS: The actual work to be done
+jobs:
+
+  # JOB 1: TEST
+  # This job runs your tests to ensure code quality
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest  # Use Ubuntu Linux virtual machine
+
+    steps:
+      # STEP 1: Get the code
+      # This clones your repository to the GitHub Actions runner
+      - name: Checkout code
+        uses: actions/checkout@v4
+        # 'uses' means we're using a pre-built action from GitHub marketplace
+        # actions/checkout is maintained by GitHub and clones your repo
+
+      # STEP 2: Set up Python
+      # Install Python on the virtual machine
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          # 'with' passes parameters to the action
+          # We specify Python 3.9 to match your local environment
+
+      # STEP 3: Cache dependencies (speeds up builds)
+      # This saves your installed packages so we don't reinstall every time
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          # Where pip stores downloaded packages
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          # Unique key based on OS and requirements.txt contents
+          # If requirements.txt changes, cache is invalidated
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # STEP 4: Install dependencies
+      # Install all packages from requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        # 'run' executes shell commands
+        # This is like running these commands in your terminal
+
+      # STEP 5: Run the tests
+      # Execute pytest with coverage reporting
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=. --cov-report=term-missing --cov-report=html -v
+        # --cov=. : Measure coverage for all Python files in current directory
+        # --cov-report=term-missing : Show which lines aren't tested
+        # --cov-report=html : Generate HTML coverage report
+        # -v : Verbose output (show each test name)
+
+      # STEP 6: Upload coverage report
+      # Save the HTML coverage report as an artifact
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        if: always()  # Upload even if tests fail
+        with:
+          name: coverage-report
+          path: htmlcov/
+          # You can download this from GitHub Actions UI to see detailed coverage
+
+  # JOB 2: CODE QUALITY (Optional but recommended)
+  # Check code style and quality
+  lint:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install linting tools
+        run: |
+          pip install flake8 black
+        # flake8: Checks code style (PEP 8 compliance)
+        # black: Code formatter (checks if code is formatted correctly)
+
+      - name: Run flake8
+        run: |
+          # Check for Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # E9: Runtime errors
+          # F63: Invalid syntax
+          # F7: Syntax errors
+          # F82: Undefined names
+
+          # Check for code style issues (warnings only, won't fail the build)
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        continue-on-error: true  # Don't fail the build on style issues (yet)
+
+      - name: Check code formatting with black
+        run: |
+          black --check --diff .
+        continue-on-error: true  # Don't fail the build on formatting issues (yet)
+
+# NOTE: We'll add the deployment job in the next step
+# For now, this pipeline will:
+# 1. Run on every push/PR to main
+# 2. Test your code automatically
+# 3. Check code quality
+# 4. Report results back to GitHub
