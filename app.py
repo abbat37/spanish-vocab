@@ -17,7 +17,15 @@ app.config['ENV'] = os.getenv('FLASK_ENV', 'production')
 app.config['DEBUG'] = os.getenv('FLASK_DEBUG', 'False') == 'True'
 
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///spanish_vocab.db')
+# Get DATABASE_URL from environment, fallback to SQLite for local dev
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///spanish_vocab.db')
+
+# Render provides postgres:// but SQLAlchemy needs postgresql://
+# This conversion ensures compatibility
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database

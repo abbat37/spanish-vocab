@@ -25,6 +25,26 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest  # Use Ubuntu Linux virtual machine
 
+    # POSTGRESQL SERVICE
+    # Spin up PostgreSQL in a Docker container for testing
+    services:
+      postgres:
+        image: postgres:15
+        # Set up PostgreSQL with test credentials
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        # Health checks ensure PostgreSQL is ready before tests run
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        # Expose PostgreSQL on port 5432
+        ports:
+          - 5432:5432
+
     steps:
       # STEP 1: Get the code
       # This clones your repository to the GitHub Actions runner
@@ -65,10 +85,15 @@ jobs:
         # This is like running these commands in your terminal
 
       # STEP 5: Run the tests
-      # Execute pytest with coverage reporting
+      # Execute pytest with coverage reporting against PostgreSQL
       - name: Run tests with coverage
+        env:
+          # Point to the PostgreSQL service
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
         run: |
           pytest --cov=. --cov-report=term-missing --cov-report=html -v
+        # Tests now run against PostgreSQL (same as production)
+        # This catches PostgreSQL-specific issues before deployment
         # --cov=. : Measure coverage for all Python files in current directory
         # --cov-report=term-missing : Show which lines aren't tested
         # --cov-report=html : Generate HTML coverage report
