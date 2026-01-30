@@ -378,7 +378,19 @@
                 },
                 body: JSON.stringify({ word_id: wordId })
             })
-            .then(response => response.json())
+            .then(response => {
+                // Handle rate limiting
+                if (response.status === 429) {
+                    button.textContent = '⏱️ Too fast!';
+                    button.style.background = '#f59e0b';
+                    setTimeout(() => {
+                        button.textContent = button.classList.contains('learned') ? '✓ Learned!' : '✓ Learned';
+                        button.style.background = '';
+                    }, 3000);
+                    throw new Error('Rate limited');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     // Toggle button state
@@ -397,8 +409,10 @@
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to update learned status');
+                if (error.message !== 'Rate limited') {
+                    console.error('Error:', error);
+                    alert('Failed to update learned status');
+                }
             });
         }
 
