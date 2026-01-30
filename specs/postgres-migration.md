@@ -1,6 +1,6 @@
 # PostgreSQL Migration
 
-**Status:** active
+**Status:** done
 **Author:** Developer
 **Created:** 2026-01-26
 **Estimated Time:** 3-4 hours

@@ -5,9 +5,23 @@ import uuid
 from dotenv import load_dotenv # type: ignore
 from database import db, init_db, VocabularyWord, SentenceTemplate, UserSession, WordPractice
 from sqlalchemy import func # type: ignore
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Initialize Sentry for error tracking
+# Only initialize if SENTRY_DSN is provided (production)
+SENTRY_DSN = os.getenv('SENTRY_DSN')
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[FlaskIntegration()],
+        traces_sample_rate=0.1,  # 10% of transactions for performance monitoring
+        profiles_sample_rate=0.1,  # 10% for profiling
+        environment=os.getenv('FLASK_ENV', 'production'),  # Tag errors by environment
+    )
 
 app = Flask(__name__)
 
