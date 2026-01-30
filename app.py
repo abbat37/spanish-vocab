@@ -8,6 +8,8 @@ from sqlalchemy import func # type: ignore
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from marshmallow import Schema, fields, ValidationError
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Load environment variables from .env file
 load_dotenv()
@@ -45,6 +47,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database
 init_db(app)
+
+# Initialize rate limiter
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
 
 # Auto-seed database on startup if empty
 with app.app_context():
@@ -225,6 +235,7 @@ def index():
 
 
 @app.route('/api/mark-learned', methods=['POST'])
+@limiter.limit("10 per minute")
 def mark_learned():
     """API endpoint to mark a word as learned"""
     # Validate incoming request data
