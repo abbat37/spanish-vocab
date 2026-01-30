@@ -7,6 +7,7 @@ from database import db, init_db, VocabularyWord, SentenceTemplate, UserSession,
 from sqlalchemy import func # type: ignore
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
+from marshmallow import Schema, fields, ValidationError
 
 # Load environment variables from .env file
 load_dotenv()
@@ -66,6 +67,18 @@ with app.app_context():
             print(f"❌ Error seeding database: {e}")
             print("Please run manually: python3 seed_database.py")
             print("="*60 + "\n")
+
+
+# API Validation Schemas
+class MarkLearnedSchema(Schema):
+    """Validation schema for mark-learned endpoint"""
+    word_id = fields.Integer(required=True, error_messages={
+        'required': 'word_id is required',
+        'invalid': 'word_id must be a valid integer'
+    })
+    learned = fields.Boolean(error_messages={
+        'invalid': 'learned must be a boolean (true/false)'
+    })
 
 
 def get_or_create_session_id():
@@ -214,11 +227,16 @@ def index():
 @app.route('/api/mark-learned', methods=['POST'])
 def mark_learned():
     """API endpoint to mark a word as learned"""
-    session_id = get_or_create_session_id()
-    word_id = request.json.get('word_id')
+    # Validate incoming request data
+    schema = MarkLearnedSchema()
+    try:
+        data = schema.load(request.json or {})
+    except ValidationError as err:
+        # Return validation errors with 400 status
+        return jsonify({'error': 'Validation failed', 'details': err.messages}), 400
 
-    if not word_id:
-        return jsonify({'error': 'word_id is required'}), 400
+    session_id = get_or_create_session_id()
+    word_id = data['word_id']
 
     # Find the practice record
     practice = WordPractice.query.filter_by(
