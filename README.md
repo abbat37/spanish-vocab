@@ -4,11 +4,12 @@ A production-grade Flask web application for learning Spanish vocabulary through
 
 ## Features
 
+- **User Authentication**: Secure account creation with email and password
+- **Persistent Progress**: Your learning data is saved to your account, accessible from any device
 - Generate practice sentences in Spanish and English based on themes and word types
 - Track your learning progress with statistics by theme
 - Mark words as learned and monitor your improvement
 - Responsive web interface with real-time updates via AJAX
-- Persistent user sessions and progress tracking
 - Full-width dashboard for viewing learning statistics
 - Production-ready with HTTPS, database, and automated deployments
 
@@ -22,6 +23,8 @@ A production-grade Flask web application for learning Spanish vocabulary through
 - **API Validation**: Marshmallow 3.23.2
 - **Rate Limiting**: Flask-Limiter 3.8.0
 - **Error Tracking**: Sentry SDK 2.19.2
+- **Authentication**: Flask-Login 0.6.3
+- **Password Hashing**: bcrypt 4.1.2
 
 ### Frontend
 - **UI**: HTML5, CSS3 (custom responsive design)
@@ -143,6 +146,13 @@ start htmlcov/index.html  # On Windows
 ### Schema
 
 ```
+User
+├── id (Primary Key)
+├── email (Unique, Indexed)
+├── password_hash (bcrypt hashed)
+├── created_at (Timestamp)
+└── last_login (Timestamp)
+
 VocabularyWord
 ├── id (Primary Key)
 ├── theme (e.g., 'cooking', 'work', 'sports', 'restaurant')
@@ -160,7 +170,9 @@ SentenceTemplate
 UserSession
 ├── id (Primary Key)
 ├── session_id (UUID)
-└── created_at (Timestamp)
+├── user_id (Foreign Key to User, nullable for anonymous sessions)
+├── created_at (Timestamp)
+└── last_active (Timestamp)
 
 WordPractice
 ├── id (Primary Key)
@@ -325,14 +337,49 @@ Run Linting ──→ Pass ──────────────┤
 
 ## Usage
 
+### First-Time User
+1. Visit the site and click "Sign up"
+2. Create an account with email and password (min 8 characters)
+3. You'll be automatically logged in
+
+### Returning User
+1. Visit the site and log in with your credentials
+2. Your progress is preserved across sessions and devices
+
+### Learning Flow
 1. Select a theme (cooking, work, sports, restaurant)
 2. Select a word type (verb, noun, adjective)
 3. Click "Generate Sentences"
 4. Practice reading Spanish sentences with English translations
 5. Click "✓ Learned" to mark words as learned
 6. View your progress in the dashboard (full-width stats at top)
+7. Click "Logout" when done (top-right corner)
 
 ## API Endpoints
+
+### `POST /register`
+Create a new user account.
+
+**Request:** Form data
+- `email`: User email address
+- `password`: Password (min 8 characters)
+- `confirm_password`: Password confirmation
+
+**Response:** Redirect to index page with success message
+
+### `POST /login`
+Authenticate a user.
+
+**Request:** Form data
+- `email`: User email address
+- `password`: User password
+
+**Response:** Redirect to index page or next parameter
+
+### `GET /logout`
+Log out the current user (requires authentication).
+
+**Response:** Redirect to login page
 
 ### `POST /api/mark-learned`
 Mark a word as learned or unlearned (toggle).
@@ -362,10 +409,11 @@ Mark a word as learned or unlearned (toggle).
 ## Features Roadmap
 
 ### ✅ Completed (Current)
+- **User Authentication & Authorization** (Session-based with Flask-Login)
 - Git version control with GitHub
 - CI/CD Pipeline with GitHub Actions
 - PostgreSQL production database
-- User progress tracking with sessions
+- User progress tracking with persistent accounts
 - Unit tests with 90%+ coverage
 - Cloud deployment (EC2 + Render)
 - HTTPS with Let's Encrypt
@@ -377,10 +425,12 @@ Mark a word as learned or unlearned (toggle).
 - Auto-seeding database on startup
 - Responsive dashboard (full-width)
 - Spec-driven development
+- Password hashing with bcrypt
 
 ### 🚧 Next Phase
-- User authentication (login/signup)
+- Password reset via email
 - Email notifications for progress milestones
+- OAuth integration (Sign in with Google/GitHub)
 - Spaced repetition algorithm
 - Audio pronunciation
 - Mobile app (React Native)

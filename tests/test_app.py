@@ -9,7 +9,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app import app, generate_sentences, get_user_stats, record_word_practice
-from database import db, VocabularyWord, SentenceTemplate, WordPractice, UserSession
+from database import db, VocabularyWord, SentenceTemplate, WordPractice, UserSession, User
 
 
 @pytest.fixture
@@ -67,17 +67,154 @@ def _seed_test_data():
     db.session.commit()
 
 
+class TestAuthentication:
+    """Test authentication functionality"""
+
+    def test_register_page_loads(self, client):
+        """Test that register page loads"""
+        response = client.get('/register')
+        assert response.status_code == 200
+        assert b'Create Account' in response.data
+
+    def test_login_page_loads(self, client):
+        """Test that login page loads"""
+        response = client.get('/login')
+        assert response.status_code == 200
+        assert b'Welcome Back' in response.data
+
+    def test_user_registration(self, client):
+        """Test user registration"""
+        response = client.post('/register', data={
+            'email': 'test@example.com',
+            'password': 'testpassword123',
+            'confirm_password': 'testpassword123'
+        }, follow_redirects=True)
+
+        assert response.status_code == 200
+
+        # Check user was created
+        with app.app_context():
+            user = User.query.filter_by(email='test@example.com').first()
+            assert user is not None
+            assert user.check_password('testpassword123')
+
+    def test_user_registration_password_mismatch(self, client):
+        """Test registration with mismatched passwords"""
+        response = client.post('/register', data={
+            'email': 'test@example.com',
+            'password': 'testpassword123',
+            'confirm_password': 'different123'
+        })
+
+        assert b'Passwords do not match' in response.data
+
+    def test_user_registration_short_password(self, client):
+        """Test registration with short password"""
+        response = client.post('/register', data={
+            'email': 'test@example.com',
+            'password': 'short',
+            'confirm_password': 'short'
+        })
+
+        assert b'at least 8 characters' in response.data
+
+    def test_user_login(self, client):
+        """Test user login"""
+        # First create a user
+        with app.app_context():
+            user = User(email='test@example.com')
+            user.set_password('testpassword123')
+            db.session.add(user)
+            db.session.commit()
+
+        # Now try to login
+        response = client.post('/login', data={
+            'email': 'test@example.com',
+            'password': 'testpassword123'
+        }, follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b'Welcome back' in response.data
+
+    def test_user_login_wrong_password(self, client):
+        """Test login with wrong password"""
+        # First create a user
+        with app.app_context():
+            user = User(email='test@example.com')
+            user.set_password('correctpassword')
+            db.session.add(user)
+            db.session.commit()
+
+        # Try to login with wrong password
+        response = client.post('/login', data={
+            'email': 'test@example.com',
+            'password': 'wrongpassword'
+        })
+
+        assert b'Invalid email or password' in response.data
+
+    def test_logout(self, client):
+        """Test user logout"""
+        # First create and login a user
+        with app.app_context():
+            user = User(email='test@example.com')
+            user.set_password('testpassword123')
+            db.session.add(user)
+            db.session.commit()
+
+        client.post('/login', data={
+            'email': 'test@example.com',
+            'password': 'testpassword123'
+        })
+
+        # Now logout
+        response = client.get('/logout', follow_redirects=True)
+        assert response.status_code == 200
+        assert b'logged out' in response.data
+
+    def test_protected_route_requires_login(self, client):
+        """Test that index route requires login"""
+        response = client.get('/')
+        # Should redirect to login page
+        assert response.status_code == 302
+        assert '/login' in response.location
+
+
 class TestRoutes:
     """Test Flask routes"""
 
     def test_home_page_loads(self, client):
-        """Test that home page loads successfully"""
+        """Test that home page loads successfully for authenticated user"""
+        # First create and login a user
+        with app.app_context():
+            user = User(email='test@example.com')
+            user.set_password('testpassword123')
+            db.session.add(user)
+            db.session.commit()
+
+        client.post('/login', data={
+            'email': 'test@example.com',
+            'password': 'testpassword123'
+        })
+
         response = client.get('/')
         assert response.status_code == 200
         assert b'Spanish Word Learner' in response.data
 
     def test_home_page_has_form(self, client):
         """Test that home page contains the form elements"""
+        # Login first
+        with app.app_context():
+            user = User(email='test@example.com')
+            user.set_password('testpassword123')
+            db.session.add(user)
+            db.session.commit()
+
+        client.post('/login', data={
+            'email': 'test@example.com',
+            'password': 'testpassword123'
+        })
+
         response = client.get('/')
         assert b'<select id="theme"' in response.data
         assert b'<select id="word_type"' in response.data
@@ -85,6 +222,18 @@ class TestRoutes:
 
     def test_generate_sentences_post(self, client):
         """Test POST request to generate sentences"""
+        # Login first
+        with app.app_context():
+            user = User(email='test@example.com')
+            user.set_password('testpassword123')
+            db.session.add(user)
+            db.session.commit()
+
+        client.post('/login', data={
+            'email': 'test@example.com',
+            'password': 'testpassword123'
+        })
+
         response = client.post('/', data={
             'theme': 'cooking',
             'word_type': 'verb'
@@ -95,6 +244,18 @@ class TestRoutes:
 
     def test_invalid_theme(self, client):
         """Test with invalid theme"""
+        # Login first
+        with app.app_context():
+            user = User(email='test@example.com')
+            user.set_password('testpassword123')
+            db.session.add(user)
+            db.session.commit()
+
+        client.post('/login', data={
+            'email': 'test@example.com',
+            'password': 'testpassword123'
+        })
+
         response = client.post('/', data={
             'theme': 'invalid',
             'word_type': 'verb'

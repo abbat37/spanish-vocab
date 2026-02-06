@@ -8,3 +8,5 @@ psycopg2-binary==2.9.9
 sentry-sdk[flask]==2.19.2
 marshmallow==3.23.2
 flask-limiter==3.8.0
+Flask-Login==0.6.3
+bcrypt==4.1.2

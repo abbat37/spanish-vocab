@@ -2,9 +2,52 @@
 Database models for Spanish Vocabulary Learning App
 """
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 from datetime import datetime
+import bcrypt
 
 db = SQLAlchemy()
+
+
+class User(UserMixin, db.Model):
+    """Model for user accounts"""
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(200), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationship to user sessions (for migration of anonymous sessions)
+    sessions = db.relationship('UserSession', backref='user', lazy=True)
+
+    def __repr__(self):
+        return f'<User {self.email}>'
+
+    def set_password(self, password):
+        """Hash and set the password"""
+        # bcrypt requires bytes, so we encode the password string
+        password_bytes = password.encode('utf-8')
+        # Generate salt and hash the password
+        salt = bcrypt.gensalt()
+        self.password_hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
+
+    def check_password(self, password):
+        """Check if provided password matches the hash"""
+        password_bytes = password.encode('utf-8')
+        password_hash_bytes = self.password_hash.encode('utf-8')
+        return bcrypt.checkpw(password_bytes, password_hash_bytes)
+
+    def to_dict(self):
+        """Convert to dictionary format (excluding password)"""
+        return {
+            'id': self.id,
+            'email': self.email,
+            'created_at': self.created_at.isoformat(),
+            'last_login': self.last_login.isoformat() if self.last_login else None
+        }
+
 
 class VocabularyWord(db.Model):
     """Model for storing Spanish vocabulary words"""
@@ -57,16 +100,17 @@ class SentenceTemplate(db.Model):
 
 
 class UserSession(db.Model):
-    """Model for tracking user sessions (simple session-based tracking)"""
+    """Model for tracking user sessions (both anonymous and authenticated)"""
     __tablename__ = 'user_sessions'
 
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)  # NULL for anonymous sessions
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_active = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):
-        return f'<UserSession {self.session_id}>'
+        return f'<UserSession {self.session_id} user_id={self.user_id}>'
 
 
 class WordPractice(db.Model):
