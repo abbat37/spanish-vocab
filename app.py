@@ -109,28 +109,90 @@ class MarkLearnedSchema(Schema):
 
 
 def get_or_create_session_id():
-    """Get or create a session ID for tracking user progress"""
+    """Get or create a session ID for tracking user progress
+
+    For authenticated users, we create a session tied to their user_id.
+    This ensures progress follows the user across devices/browsers.
+    """
     if 'user_session_id' not in session:
         session['user_session_id'] = str(uuid.uuid4())
 
-        # Create user session in database
-        user_session = UserSession(session_id=session['user_session_id'])
+        # Create user session in database, linked to user if authenticated
+        user_session = UserSession(
+            session_id=session['user_session_id'],
+            user_id=current_user.id if current_user.is_authenticated else None
+        )
         db.session.add(user_session)
         db.session.commit()
+    else:
+        # Update existing session with user_id if user just logged in
+        if current_user.is_authenticated:
+            user_session = UserSession.query.filter_by(
+                session_id=session['user_session_id']
+            ).first()
+            if user_session and user_session.user_id is None:
+                user_session.user_id = current_user.id
+                db.session.commit()
 
     return session['user_session_id']
 
 
-def get_user_stats(session_id):
-    """Get user progress statistics"""
-    total_practiced = WordPractice.query.filter_by(session_id=session_id).count()
-    total_learned = WordPractice.query.filter_by(session_id=session_id, marked_learned=True).count()
+def get_user_identifier():
+    """Get the identifier to use for tracking user progress
 
-    # Get stats by theme
-    theme_stats = db.session.query(
-        WordPractice.theme,
-        func.count(WordPractice.id).label('count')
-    ).filter_by(session_id=session_id).group_by(WordPractice.theme).all()
+    For authenticated users: use user_id (progress follows them everywhere)
+    For anonymous users: use session_id (progress tied to browser session)
+    """
+    if current_user.is_authenticated:
+        return ('user_id', current_user.id)
+    else:
+        return ('session_id', get_or_create_session_id())
+
+
+def get_user_stats(identifier_type=None, identifier_value=None):
+    """Get user progress statistics
+
+    Args:
+        identifier_type: 'user_id' or 'session_id'
+        identifier_value: The actual ID value
+    """
+    if identifier_type is None or identifier_value is None:
+        identifier_type, identifier_value = get_user_identifier()
+
+    if identifier_type == 'user_id':
+        # Get all sessions for this user
+        user_sessions = UserSession.query.filter_by(user_id=identifier_value).all()
+        session_ids = [s.session_id for s in user_sessions]
+
+        # Get practice records from all user's sessions
+        total_practiced = WordPractice.query.filter(
+            WordPractice.session_id.in_(session_ids)
+        ).count() if session_ids else 0
+
+        total_learned = WordPractice.query.filter(
+            WordPractice.session_id.in_(session_ids),
+            WordPractice.marked_learned == True
+        ).count() if session_ids else 0
+
+        # Get stats by theme
+        theme_stats = db.session.query(
+            WordPractice.theme,
+            func.count(WordPractice.id).label('count')
+        ).filter(
+            WordPractice.session_id.in_(session_ids)
+        ).group_by(WordPractice.theme).all() if session_ids else []
+
+    else:  # session_id
+        total_practiced = WordPractice.query.filter_by(session_id=identifier_value).count()
+        total_learned = WordPractice.query.filter_by(
+            session_id=identifier_value,
+            marked_learned=True
+        ).count()
+
+        theme_stats = db.session.query(
+            WordPractice.theme,
+            func.count(WordPractice.id).label('count')
+        ).filter_by(session_id=identifier_value).group_by(WordPractice.theme).all()
 
     return {
         'total_practiced': total_practiced,
@@ -158,8 +220,19 @@ def record_word_practice(session_id, word_id, theme, word_type):
         db.session.commit()
 
 
-def generate_sentences(theme, word_type, session_id=None):
-    """Generate 5 sentences with new Spanish words from database"""
+def generate_sentences(theme, word_type, identifier_type=None, identifier_value=None):
+    """Generate 5 sentences with new Spanish words from database
+
+    Args:
+        theme: Theme category (cooking, work, etc.)
+        word_type: Type of word (verb, noun, adj)
+        identifier_type: 'user_id' or 'session_id' (optional, will auto-detect)
+        identifier_value: The actual ID value (optional, will auto-detect)
+    """
+    # Get user identifier if not provided
+    if identifier_type is None or identifier_value is None:
+        identifier_type, identifier_value = get_user_identifier()
+
     # Query vocabulary words from database
     words = VocabularyWord.query.filter_by(theme=theme, word_type=word_type).all()
 
@@ -178,6 +251,13 @@ def generate_sentences(theme, word_type, session_id=None):
     # Select 5 random templates (or reuse if less than 5)
     selected_templates = random.sample(templates, min(5, len(templates)))
 
+    # Get session IDs to check for learned status
+    if identifier_type == 'user_id':
+        user_sessions = UserSession.query.filter_by(user_id=identifier_value).all()
+        session_ids = [s.session_id for s in user_sessions]
+    else:
+        session_ids = [identifier_value]
+
     sentences = []
     for i, word in enumerate(selected_words):
         # Get the template (cycle through if we have fewer templates than words)
@@ -195,15 +275,15 @@ def generate_sentences(theme, word_type, session_id=None):
             f'<mark>{word.english_translation}</mark>'
         )
 
-        # Check if this word is marked as learned
+        # Check if this word is marked as learned in any of the user's sessions
         is_learned = False
-        if session_id:
-            practice = WordPractice.query.filter_by(
-                session_id=session_id,
-                word_id=word.id
+        if session_ids:
+            practice = WordPractice.query.filter(
+                WordPractice.session_id.in_(session_ids),
+                WordPractice.word_id == word.id,
+                WordPractice.marked_learned == True
             ).first()
-            if practice and practice.marked_learned:
-                is_learned = True
+            is_learned = practice is not None
 
         sentences.append({
             'spanish': spanish_sentence,
@@ -332,29 +412,33 @@ def index():
     word_type = ''
     stats = None
 
-    # Get or create session
+    # Get or create session (this links session to user if authenticated)
     session_id = get_or_create_session_id()
-    stats = get_user_stats(session_id)
+
+    # Get stats using user_id for authenticated users
+    identifier_type, identifier_value = get_user_identifier()
+    stats = get_user_stats(identifier_type, identifier_value)
 
     if request.method == 'POST':
         theme = request.form.get('theme', '').lower()
         word_type = request.form.get('word_type', '').lower()
 
         if theme and word_type:
-            sentences = generate_sentences(theme, word_type, session_id)
+            sentences = generate_sentences(theme, word_type, identifier_type, identifier_value)
 
-            # Record practice for each word
+            # Record practice for each word (still uses session_id for granular tracking)
             for sentence in sentences:
                 record_word_practice(session_id, sentence['word_id'], theme, word_type)
 
             # Refresh stats after recording practice
-            stats = get_user_stats(session_id)
+            stats = get_user_stats(identifier_type, identifier_value)
 
     return render_template('index.html', sentences=sentences, theme=theme, word_type=word_type, stats=stats)
 
 
 @app.route('/api/mark-learned', methods=['POST'])
 @limiter.limit("10 per minute")
+@login_required
 def mark_learned():
     """API endpoint to mark a word as learned"""
     # Validate incoming request data
@@ -368,7 +452,7 @@ def mark_learned():
     session_id = get_or_create_session_id()
     word_id = data['word_id']
 
-    # Find the practice record
+    # Find the practice record in the current session
     practice = WordPractice.query.filter_by(
         session_id=session_id,
         word_id=word_id
@@ -377,10 +461,13 @@ def mark_learned():
     if practice:
         practice.marked_learned = not practice.marked_learned  # Toggle
         db.session.commit()
+
+        # Get updated stats across all user sessions
+        identifier_type, identifier_value = get_user_identifier()
         return jsonify({
             'success': True,
             'marked_learned': practice.marked_learned,
-            'stats': get_user_stats(session_id)
+            'stats': get_user_stats(identifier_type, identifier_value)
         })
     else:
         return jsonify({'error': 'Practice record not found'}), 404
