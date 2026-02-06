@@ -52,3 +52,7 @@ htmlcov/
 
 # Python version files
 .python-version
+
+# Migration scripts with credentials
+fix_render_db.py
+run_migration.py
