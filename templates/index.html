@@ -193,7 +193,7 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
         }
 
@@ -275,8 +275,33 @@
         <h1>🇪🇸 Spanish Word Learner</h1>
         <p class="subtitle">Learn 5 new Spanish words daily</p>
 
+        <!-- Dashboard: Full-width horizontal -->
+        {% if stats and stats.total_practiced > 0 %}
+        <div class="stats-container">
+            <div class="stats-title">📊 Your Progress</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value">{{ stats.total_practiced }}</span>
+                    <span class="stat-label">Words Practiced</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ stats.total_learned }}</span>
+                    <span class="stat-label">Marked Learned</span>
+                </div>
+                {% if stats.by_theme %}
+                {% for theme_name, count in stats.by_theme.items() %}
+                <div class="stat-item">
+                    <span class="stat-value">{{ count }}</span>
+                    <span class="stat-label">{{ theme_name|title }}</span>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
         <div class="main-layout">
-            <!-- Sidebar: Form + Stats (Sticky) -->
+            <!-- Sidebar: Form only (Sticky) -->
             <div class="sidebar">
                 <form method="POST">
                     <div class="form-group">
@@ -302,30 +327,6 @@
 
                     <button type="submit">Generate Sentences</button>
                 </form>
-
-                {% if stats and stats.total_practiced > 0 %}
-                <div class="stats-container">
-                    <div class="stats-title">📊 Your Progress</div>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <span class="stat-value">{{ stats.total_practiced }}</span>
-                            <span class="stat-label">Words Practiced</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">{{ stats.total_learned }}</span>
-                            <span class="stat-label">Marked Learned</span>
-                        </div>
-                        {% if stats.by_theme %}
-                        {% for theme_name, count in stats.by_theme.items() %}
-                        <div class="stat-item">
-                            <span class="stat-value">{{ count }}</span>
-                            <span class="stat-label">{{ theme_name|title }}</span>
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
             </div>
 
             <!-- Main Content: Sentences -->

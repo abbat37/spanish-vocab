@@ -46,3 +46,9 @@ htmlcov/
 *.db
 *.sqlite
 *.sqlite3
+
+# Claude CLI
+.claude/
+
+# Python version files
+.python-version
