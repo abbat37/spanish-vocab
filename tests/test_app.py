@@ -371,7 +371,8 @@ class TestProgressTracking:
             record_word_practice(test_session_id, 2, 'cooking', 'verb')
             record_word_practice(test_session_id, 4, 'work', 'verb')
 
-            stats = get_user_stats(test_session_id)
+            # Use the new signature with named parameters
+            stats = get_user_stats('session_id', test_session_id)
 
             assert stats['total_practiced'] == 3
             assert stats['total_learned'] == 0
@@ -382,6 +383,18 @@ class TestProgressTracking:
 
     def test_mark_learned_api(self, client):
         """Test marking a word as learned via API"""
+        # Create and login a user first (API requires authentication)
+        with app.app_context():
+            user = User(email='test@example.com')
+            user.set_password('testpassword123')
+            db.session.add(user)
+            db.session.commit()
+
+        client.post('/login', data={
+            'email': 'test@example.com',
+            'password': 'testpassword123'
+        })
+
         with app.app_context():
             # Create a session and practice record
             test_session_id = 'test-api-session'
