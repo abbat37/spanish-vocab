@@ -11,6 +11,7 @@ from marshmallow import Schema, fields, ValidationError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_migrate import Migrate
 from datetime import datetime
 
 # Load environment variables from .env file
@@ -49,6 +50,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database
 init_db(app)
+
+# Initialize Flask-Migrate for database migrations
+migrate = Migrate(app, db)
 
 # Initialize Flask-Login
 login_manager = LoginManager()

@@ -25,6 +25,7 @@ A production-grade Flask web application for learning Spanish vocabulary through
 - **Error Tracking**: Sentry SDK 2.19.2
 - **Authentication**: Flask-Login 0.6.3
 - **Password Hashing**: bcrypt 4.1.2
+- **Migrations**: Flask-Migrate 4.0.5 (Alembic)
 
 ### Frontend
 - **UI**: HTML5, CSS3 (custom responsive design)
@@ -323,6 +324,111 @@ Run Linting ──→ Pass ──────────────┤
                             Deploy to EC2 (SSH)
                                    ↓
                             Live in Production!
+```
+
+## Database Migrations
+
+This project uses **Flask-Migrate** (Alembic) to manage database schema changes safely.
+
+### Why Migrations Matter
+
+Without migrations, schema changes can break production:
+- ❌ SQLAlchemy's `db.create_all()` only creates missing tables
+- ❌ It doesn't modify existing tables (e.g., adding columns)
+- ✅ Migrations safely update production databases without data loss
+
+### Running Migrations in Production
+
+**For Render (fix required):**
+
+Option 1 - Using the migration script:
+```bash
+# Clone repo on your local machine
+git pull origin main
+
+# Set DATABASE_URL to your Render database
+export DATABASE_URL="your-render-database-url"
+
+# Run migration
+python3 run_migration.py
+```
+
+Option 2 - Direct SQL (via Render dashboard):
+```bash
+# In Render Dashboard → Database → Shell
+psql $DATABASE_URL -f migrate_add_user_auth.sql
+```
+
+Option 3 - Manual SQL:
+```sql
+-- Add user_id column if missing
+ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id);
+CREATE INDEX IF NOT EXISTS ix_user_sessions_user_id ON user_sessions(user_id);
+```
+
+**For EC2:**
+Already fixed! The column was added manually via SSH.
+
+### Creating New Migrations (For Future Changes)
+
+When you modify database models in `database.py`:
+
+1. **Generate migration:**
+   ```bash
+   python3 -m flask db migrate -m "Description of changes"
+   ```
+
+2. **Review the migration file:**
+   - Check `migrations/versions/xxx_description.py`
+   - Verify `upgrade()` and `downgrade()` functions
+   - Alembic auto-generates but may need tweaks
+
+3. **Test locally:**
+   ```bash
+   python3 -m flask db upgrade
+   ```
+
+4. **Commit migration files:**
+   ```bash
+   git add migrations/
+   git commit -m "Add migration for X"
+   git push
+   ```
+
+5. **Apply in production:**
+   - EC2: Migrations run automatically in deploy script
+   - Render: Run `flask db upgrade` after deployment
+
+### Migration Best Practices
+
+- ✅ **Always test locally first** with a copy of production data
+- ✅ **Review auto-generated migrations** (Alembic makes mistakes)
+- ✅ **Backup database before migrations** (`pg_dump`)
+- ✅ **Make migrations reversible** (implement `downgrade()`)
+- ✅ **One logical change per migration** (not multiple unrelated changes)
+- ❌ **Never edit applied migrations** (create a new one instead)
+- ❌ **Never delete migration files** (breaks migration history)
+
+### Common Migration Commands
+
+```bash
+# Initialize migrations (already done)
+python3 -m flask db init
+
+# Create new migration
+python3 -m flask db migrate -m "Add column X to table Y"
+
+# Apply pending migrations
+python3 -m flask db upgrade
+
+# Rollback last migration
+python3 -m flask db downgrade
+
+# Show current migration
+python3 -m flask db current
+
+# Show migration history
+python3 -m flask db history
 ```
 
 ## Environment Variables

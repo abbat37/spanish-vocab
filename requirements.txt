@@ -10,3 +10,4 @@ marshmallow==3.23.2
 flask-limiter==3.8.0
 Flask-Login==0.6.3
 bcrypt==4.1.2
+Flask-Migrate==4.0.5
