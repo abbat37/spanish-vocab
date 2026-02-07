@@ -74,19 +74,19 @@ def _seed_test_data():
 class TestAuthentication:
     """Test authentication functionality"""
 
-    def test_register_page_loads(self, client):
+    def test_register_page_loads(self, app, client):
         """Test that register page loads"""
         response = client.get('/register')
         assert response.status_code == 200
         assert b'Create Account' in response.data
 
-    def test_login_page_loads(self, client):
+    def test_login_page_loads(self, app, client):
         """Test that login page loads"""
         response = client.get('/login')
         assert response.status_code == 200
         assert b'Welcome Back' in response.data
 
-    def test_user_registration(self, client):
+    def test_user_registration(self, app, client):
         """Test user registration"""
         response = client.post('/register', data={
             'email': 'test@example.com',
@@ -102,7 +102,7 @@ class TestAuthentication:
             assert user is not None
             assert user.check_password('testpassword123')
 
-    def test_user_registration_password_mismatch(self, client):
+    def test_user_registration_password_mismatch(self, app, client):
         """Test registration with mismatched passwords"""
         response = client.post('/register', data={
             'email': 'test@example.com',
@@ -112,7 +112,7 @@ class TestAuthentication:
 
         assert b'Passwords do not match' in response.data
 
-    def test_user_registration_short_password(self, client):
+    def test_user_registration_short_password(self, app, client):
         """Test registration with short password"""
         response = client.post('/register', data={
             'email': 'test@example.com',
@@ -122,7 +122,7 @@ class TestAuthentication:
 
         assert b'at least 8 characters' in response.data
 
-    def test_user_login(self, client):
+    def test_user_login(self, app, client):
         """Test user login"""
         # First create a user
         with app.app_context():
@@ -140,7 +140,7 @@ class TestAuthentication:
         assert response.status_code == 200
         assert b'Welcome back' in response.data
 
-    def test_user_login_wrong_password(self, client):
+    def test_user_login_wrong_password(self, app, client):
         """Test login with wrong password"""
         # First create a user
         with app.app_context():
@@ -157,7 +157,7 @@ class TestAuthentication:
 
         assert b'Invalid email or password' in response.data
 
-    def test_logout(self, client):
+    def test_logout(self, app, client):
         """Test user logout"""
         # First create and login a user
         with app.app_context():
@@ -176,7 +176,7 @@ class TestAuthentication:
         assert response.status_code == 200
         assert b'logged out' in response.data
 
-    def test_protected_route_requires_login(self, client):
+    def test_protected_route_requires_login(self, app, client):
         """Test that index route requires login"""
         response = client.get('/')
         # Should redirect to login page
@@ -187,7 +187,7 @@ class TestAuthentication:
 class TestRoutes:
     """Test Flask routes"""
 
-    def test_home_page_loads(self, client):
+    def test_home_page_loads(self, app, client):
         """Test that home page loads successfully for authenticated user"""
         # First create and login a user
         with app.app_context():
@@ -205,7 +205,7 @@ class TestRoutes:
         assert response.status_code == 200
         assert b'Spanish Word Learner' in response.data
 
-    def test_home_page_has_form(self, client):
+    def test_home_page_has_form(self, app, client):
         """Test that home page contains the form elements"""
         # Login first
         with app.app_context():
@@ -224,7 +224,7 @@ class TestRoutes:
         assert b'<select id="word_type"' in response.data
         assert b'Generate Sentences' in response.data
 
-    def test_generate_sentences_post(self, client):
+    def test_generate_sentences_post(self, app, client):
         """Test POST request to generate sentences"""
         # Login first
         with app.app_context():
@@ -246,7 +246,7 @@ class TestRoutes:
         assert response.status_code == 200
         assert b'cocinar' in response.data or b'hornear' in response.data
 
-    def test_invalid_theme(self, client):
+    def test_invalid_theme(self, app, client):
         """Test with invalid theme"""
         # Login first
         with app.app_context():
@@ -272,20 +272,20 @@ class TestRoutes:
 class TestGenerateSentences:
     """Test sentence generation functionality"""
 
-    def test_generate_sentences_returns_list(self, client):
+    def test_generate_sentences_returns_list(self, app, client):
         """Test that SentenceService.generate_sentences returns a list"""
         with app.app_context():
             sentences = SentenceService.generate_sentences('cooking', 'verb')
             assert isinstance(sentences, list)
 
-    def test_generate_sentences_count(self, client):
+    def test_generate_sentences_count(self, app, client):
         """Test that SentenceService.generate_sentences returns correct number of sentences"""
         with app.app_context():
             sentences = SentenceService.generate_sentences('cooking', 'verb')
             assert len(sentences) <= 5  # Should return up to 5 sentences
             assert len(sentences) > 0   # Should return at least 1
 
-    def test_generate_sentences_structure(self, client):
+    def test_generate_sentences_structure(self, app, client):
         """Test that sentences have correct structure"""
         with app.app_context():
             sentences = SentenceService.generate_sentences('cooking', 'verb')
@@ -296,7 +296,7 @@ class TestGenerateSentences:
                 assert 'word_id' in sentence
                 assert 'is_learned' in sentence
 
-    def test_generate_sentences_has_highlighted_words(self, client):
+    def test_generate_sentences_has_highlighted_words(self, app, client):
         """Test that sentences have highlighted words"""
         with app.app_context():
             sentences = SentenceService.generate_sentences('cooking', 'verb')
@@ -304,13 +304,13 @@ class TestGenerateSentences:
                 assert '<mark>' in sentences[0]['spanish']
                 assert '<mark>' in sentences[0]['english']
 
-    def test_generate_sentences_invalid_theme(self, client):
+    def test_generate_sentences_invalid_theme(self, app, client):
         """Test with invalid theme returns empty list"""
         with app.app_context():
             sentences = SentenceService.generate_sentences('invalid_theme', 'verb')
             assert sentences == []
 
-    def test_generate_sentences_invalid_word_type(self, client):
+    def test_generate_sentences_invalid_word_type(self, app, client):
         """Test with invalid word type returns empty list"""
         with app.app_context():
             sentences = SentenceService.generate_sentences('cooking', 'invalid_type')
@@ -320,7 +320,7 @@ class TestGenerateSentences:
 class TestProgressTracking:
     """Test progress tracking functionality"""
 
-    def test_record_word_practice(self, client):
+    def test_record_word_practice(self, app, client):
         """Test recording word practice"""
         with app.app_context():
             test_session_id = 'test-session-123'
@@ -339,7 +339,7 @@ class TestProgressTracking:
             assert practice.word_type == 'verb'
             assert practice.marked_learned is False
 
-    def test_record_word_practice_no_duplicates(self, client):
+    def test_record_word_practice_no_duplicates(self, app, client):
         """Test that duplicate practices are not recorded"""
         with app.app_context():
             test_session_id = 'test-session-456'
@@ -356,7 +356,7 @@ class TestProgressTracking:
 
             assert count == 1
 
-    def test_get_user_stats_empty(self, client):
+    def test_get_user_stats_empty(self, app, client):
         """Test getting stats for user with no practice"""
         with app.app_context():
             stats = StatsService.get_user_stats('new-user-session')
@@ -365,7 +365,7 @@ class TestProgressTracking:
             assert stats['total_learned'] == 0
             assert stats['by_theme'] == {}
 
-    def test_get_user_stats_with_practice(self, client):
+    def test_get_user_stats_with_practice(self, app, client):
         """Test getting stats for user with practice"""
         with app.app_context():
             test_session_id = 'test-session-789'
@@ -385,7 +385,7 @@ class TestProgressTracking:
             assert stats['by_theme']['cooking'] == 2
             assert stats['by_theme']['work'] == 1
 
-    def test_mark_learned_api(self, client):
+    def test_mark_learned_api(self, app, client):
         """Test marking a word as learned via API"""
         # Create and login a user first (API requires authentication)
         with app.app_context():
@@ -431,7 +431,7 @@ class TestProgressTracking:
 class TestDatabase:
     """Test database models"""
 
-    def test_vocabulary_word_creation(self, client):
+    def test_vocabulary_word_creation(self, app, client):
         """Test creating a vocabulary word"""
         with app.app_context():
             word = VocabularyWord(
@@ -447,7 +447,7 @@ class TestDatabase:
             assert saved_word is not None
             assert saved_word.english_translation == 'to test'
 
-    def test_sentence_template_creation(self, client):
+    def test_sentence_template_creation(self, app, client):
         """Test creating a sentence template"""
         with app.app_context():
             template = SentenceTemplate(
