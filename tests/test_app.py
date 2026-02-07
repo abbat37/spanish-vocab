@@ -8,17 +8,21 @@ import os
 # Add parent directory to path to import app
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from app import app, generate_sentences, get_user_stats, record_word_practice
-from database import db, VocabularyWord, SentenceTemplate, WordPractice, UserSession, User
+from app import create_app
+from app.models import db, VocabularyWord, SentenceTemplate, WordPractice, UserSession, User
+from app.services import SentenceService, StatsService
 
 
 @pytest.fixture
-def client():
-    """Create a test client for the Flask app"""
-    app.config['TESTING'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'  # Use in-memory database for tests
-    app.config['SECRET_KEY'] = 'test-secret-key'
+def app():
+    """Create Flask app for testing"""
+    test_app = create_app('testing')
+    yield test_app
 
+
+@pytest.fixture
+def client(app):
+    """Create a test client for the Flask app"""
     with app.test_client() as client:
         with app.app_context():
             db.create_all()
@@ -269,22 +273,22 @@ class TestGenerateSentences:
     """Test sentence generation functionality"""
 
     def test_generate_sentences_returns_list(self, client):
-        """Test that generate_sentences returns a list"""
+        """Test that SentenceService.generate_sentences returns a list"""
         with app.app_context():
-            sentences = generate_sentences('cooking', 'verb')
+            sentences = SentenceService.generate_sentences('cooking', 'verb')
             assert isinstance(sentences, list)
 
     def test_generate_sentences_count(self, client):
-        """Test that generate_sentences returns correct number of sentences"""
+        """Test that SentenceService.generate_sentences returns correct number of sentences"""
         with app.app_context():
-            sentences = generate_sentences('cooking', 'verb')
+            sentences = SentenceService.generate_sentences('cooking', 'verb')
             assert len(sentences) <= 5  # Should return up to 5 sentences
             assert len(sentences) > 0   # Should return at least 1
 
     def test_generate_sentences_structure(self, client):
         """Test that sentences have correct structure"""
         with app.app_context():
-            sentences = generate_sentences('cooking', 'verb')
+            sentences = SentenceService.generate_sentences('cooking', 'verb')
             if sentences:
                 sentence = sentences[0]
                 assert 'spanish' in sentence
@@ -295,7 +299,7 @@ class TestGenerateSentences:
     def test_generate_sentences_has_highlighted_words(self, client):
         """Test that sentences have highlighted words"""
         with app.app_context():
-            sentences = generate_sentences('cooking', 'verb')
+            sentences = SentenceService.generate_sentences('cooking', 'verb')
             if sentences:
                 assert '<mark>' in sentences[0]['spanish']
                 assert '<mark>' in sentences[0]['english']
@@ -303,13 +307,13 @@ class TestGenerateSentences:
     def test_generate_sentences_invalid_theme(self, client):
         """Test with invalid theme returns empty list"""
         with app.app_context():
-            sentences = generate_sentences('invalid_theme', 'verb')
+            sentences = SentenceService.generate_sentences('invalid_theme', 'verb')
             assert sentences == []
 
     def test_generate_sentences_invalid_word_type(self, client):
         """Test with invalid word type returns empty list"""
         with app.app_context():
-            sentences = generate_sentences('cooking', 'invalid_type')
+            sentences = SentenceService.generate_sentences('cooking', 'invalid_type')
             assert sentences == []
 
 
@@ -322,7 +326,7 @@ class TestProgressTracking:
             test_session_id = 'test-session-123'
 
             # Record practice
-            record_word_practice(test_session_id, 1, 'cooking', 'verb')
+            StatsService.record_word_practice(test_session_id, 1, 'cooking', 'verb')
 
             # Verify it was recorded
             practice = WordPractice.query.filter_by(
@@ -341,8 +345,8 @@ class TestProgressTracking:
             test_session_id = 'test-session-456'
 
             # Record practice twice
-            record_word_practice(test_session_id, 1, 'cooking', 'verb')
-            record_word_practice(test_session_id, 1, 'cooking', 'verb')
+            StatsService.record_word_practice(test_session_id, 1, 'cooking', 'verb')
+            StatsService.record_word_practice(test_session_id, 1, 'cooking', 'verb')
 
             # Should only have one record
             count = WordPractice.query.filter_by(
@@ -355,7 +359,7 @@ class TestProgressTracking:
     def test_get_user_stats_empty(self, client):
         """Test getting stats for user with no practice"""
         with app.app_context():
-            stats = get_user_stats('new-user-session')
+            stats = StatsService.get_user_stats('new-user-session')
 
             assert stats['total_practiced'] == 0
             assert stats['total_learned'] == 0
@@ -367,12 +371,12 @@ class TestProgressTracking:
             test_session_id = 'test-session-789'
 
             # Record some practice
-            record_word_practice(test_session_id, 1, 'cooking', 'verb')
-            record_word_practice(test_session_id, 2, 'cooking', 'verb')
-            record_word_practice(test_session_id, 4, 'work', 'verb')
+            StatsService.record_word_practice(test_session_id, 1, 'cooking', 'verb')
+            StatsService.record_word_practice(test_session_id, 2, 'cooking', 'verb')
+            StatsService.record_word_practice(test_session_id, 4, 'work', 'verb')
 
             # Use the new signature with named parameters
-            stats = get_user_stats('session_id', test_session_id)
+            stats = StatsService.get_user_stats('session_id', test_session_id)
 
             assert stats['total_practiced'] == 3
             assert stats['total_learned'] == 0

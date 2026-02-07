@@ -138,7 +138,17 @@ def get_or_create_session_id():
                         session_id=session['user_session_id']
                     ).first()
                     if user_session and user_session.user_id is None:
+                        # Link existing anonymous session to authenticated user
                         user_session.user_id = current_user.id
+                        db.session.commit()
+                    elif not user_session:
+                        # Session ID in cookie but no DB record - create one
+                        # This can happen if the database was reset but cookies persisted
+                        user_session = UserSession(
+                            session_id=session['user_session_id'],
+                            user_id=current_user.id
+                        )
+                        db.session.add(user_session)
                         db.session.commit()
             except (AttributeError, RuntimeError):
                 pass

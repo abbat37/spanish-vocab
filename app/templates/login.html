@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Spanish Word Learner</title>
+    <title>Login - Spanish Word Learner</title>
     <style>
         * {
             margin: 0;
@@ -124,27 +124,21 @@
             transform: translateY(0);
         }
 
-        .login-link {
+        .register-link {
             text-align: center;
             margin-top: 20px;
             color: #666;
             font-size: 0.9em;
         }
 
-        .login-link a {
+        .register-link a {
             color: #667eea;
             text-decoration: none;
             font-weight: 600;
         }
 
-        .login-link a:hover {
+        .register-link a:hover {
             text-decoration: underline;
-        }
-
-        .password-requirements {
-            font-size: 0.85em;
-            color: #666;
-            margin-top: -5px;
         }
 
         @media (max-width: 600px) {
@@ -160,8 +154,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>Create Account</h1>
-        <p class="subtitle">Start learning Spanish vocabulary</p>
+        <h1>Welcome Back</h1>
+        <p class="subtitle">Continue learning Spanish vocabulary</p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -181,20 +175,14 @@
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required minlength="8">
-                <div class="password-requirements">Must be at least 8 characters</div>
+                <input type="password" id="password" name="password" required>
             </div>
 
-            <div class="form-group">
-                <label for="confirm_password">Confirm Password</label>
-                <input type="password" id="confirm_password" name="confirm_password" required minlength="8">
-            </div>
-
-            <button type="submit">Create Account</button>
+            <button type="submit">Log In</button>
         </form>
 
-        <div class="login-link">
-            Already have an account? <a href="{{ url_for('login') }}">Log in</a>
+        <div class="register-link">
+            Don't have an account? <a href="{{ url_for('auth.register') }}">Sign up</a>
         </div>
     </div>
 </body>
