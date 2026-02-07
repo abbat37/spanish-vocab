@@ -284,7 +284,7 @@ sudo certbot --nginx -d spanish-vocab.duckdns.org
    - Connect your GitHub repository
    - Branch: `main`
    - Build Command: `pip install -r requirements.txt`
-   - Start Command: `gunicorn app:app`
+   - Start Command: `gunicorn run:app`
 
 3. Set Environment Variables:
    ```
