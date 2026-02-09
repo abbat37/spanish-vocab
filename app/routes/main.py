@@ -25,6 +25,13 @@ def index():
     identifier_type, identifier_value = SessionService.get_user_identifier()
     stats = StatsService.get_user_stats(identifier_type, identifier_value)
 
+    # Ensure all themes are always present in stats (even with 0)
+    all_themes = ['cooking', 'work', 'sports', 'restaurant']
+    if stats and 'by_theme' in stats:
+        for theme_name in all_themes:
+            if theme_name not in stats['by_theme']:
+                stats['by_theme'][theme_name] = 0
+
     if request.method == 'POST':
         theme = request.form.get('theme', '').lower()
         word_type = request.form.get('word_type', '').lower()
@@ -42,6 +49,13 @@ def index():
 
             # Refresh stats after recording practice
             stats = StatsService.get_user_stats(identifier_type, identifier_value)
+
+            # Ensure all themes are always present
+            all_themes = ['cooking', 'work', 'sports', 'restaurant']
+            if stats and 'by_theme' in stats:
+                for theme_name in all_themes:
+                    if theme_name not in stats['by_theme']:
+                        stats['by_theme'][theme_name] = 0
 
     return render_template(
         'index.html',

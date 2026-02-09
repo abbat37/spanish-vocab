@@ -77,17 +77,37 @@ def GenerateSentences(Theme, wordType):
 
 ```
 project-root/
-├── .speckit/          # SpecKit configuration
-├── specs/             # Feature specifications
-├── .github/           # GitHub Actions workflows
-├── tests/             # All test files
-├── templates/         # Jinja2 HTML templates
-├── static/            # CSS, JS, images (future)
-├── app.py             # Main Flask application
-├── database.py        # Database models
-├── seed_database.py   # Database seeding script
-├── requirements.txt   # Python dependencies
-└── .env              # Environment variables (not in git)
+├── .speckit/              # SpecKit configuration
+├── specs/                 # Feature specifications
+├── .github/               # GitHub Actions workflows
+├── tests/                 # All test files
+├── templates/             # Jinja2 HTML templates
+├── migrations/            # Database migrations (Alembic/Flask-Migrate)
+├── app/                   # Main application package
+│   ├── __init__.py       # Application factory
+│   ├── config.py         # Configuration management
+│   ├── models/           # Database models
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── session.py
+│   │   └── vocabulary.py
+│   ├── routes/           # Blueprint routes
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── main.py
+│   │   └── api.py
+│   ├── services/         # Business logic layer
+│   │   ├── __init__.py
+│   │   ├── session_service.py
+│   │   ├── stats_service.py
+│   │   └── sentence_service.py
+│   └── utils/            # Utilities and validators
+│       ├── __init__.py
+│       └── validators.py
+├── run.py                 # Application entry point
+├── seed_database.py       # Database seeding script
+├── requirements.txt       # Python dependencies
+└── .env                   # Environment variables (not in git)
 ```
 
 ### Import Order
@@ -103,10 +123,11 @@ import os
 import random
 from datetime import datetime
 
-from flask import Flask, render_template
+from flask import Flask, render_template, Blueprint
 from sqlalchemy import func
 
-from database import db, VocabularyWord
+from app.models import db, VocabularyWord, User
+from app.services import SessionService, StatsService
 ```
 
 ---

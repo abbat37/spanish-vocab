@@ -28,9 +28,10 @@ A production-grade Flask web application for learning Spanish vocabulary through
 - **Migrations**: Flask-Migrate 4.0.5 (Alembic)
 
 ### Frontend
-- **UI**: HTML5, CSS3 (custom responsive design)
+- **UI**: HTML5, Tailwind CSS 3.3.2 (utility-first CSS framework)
 - **JavaScript**: Vanilla JS with Fetch API for AJAX
-- **Layout**: CSS Grid and Flexbox
+- **Layout**: Responsive design with mobile-first approach
+- **Build**: npm + Tailwind CLI for optimized CSS builds
 
 ### Infrastructure
 - **Web Server**: Nginx (reverse proxy with SSL termination)
@@ -46,50 +47,71 @@ A production-grade Flask web application for learning Spanish vocabulary through
 
 ## Project Structure
 
+This application follows a **modular architecture** with Flask's **application factory pattern** and **blueprints** for scalability and maintainability.
+
 ```
 spanish-vocab-app/
 ├── run.py                      # Application entry point
 ├── requirements.txt            # Python dependencies
+├── package.json                # Node.js dependencies & build scripts
+├── tailwind.config.js          # Tailwind CSS configuration
 ├── .env                        # Environment variables (not in git)
 ├── .gitignore                 # Git ignore rules
 ├── app/
-│   ├── __init__.py            # Application factory
-│   ├── config.py              # Configuration management
-│   ├── models/                # Database models
-│   │   ├── __init__.py
-│   │   ├── user.py
-│   │   ├── session.py
-│   │   └── vocabulary.py
-│   ├── routes/                # Blueprint routes
-│   │   ├── __init__.py
-│   │   ├── auth.py
-│   │   ├── main.py
-│   │   └── api.py
-│   ├── services/              # Business logic
-│   │   ├── __init__.py
-│   │   ├── session_service.py
-│   │   ├── stats_service.py
-│   │   └── sentence_service.py
+│   ├── __init__.py            # Application factory (create_app)
+│   ├── config.py              # Configuration classes (Dev, Prod, Test)
+│   ├── models/                # Database models (SQLAlchemy)
+│   │   ├── __init__.py        # Model exports
+│   │   ├── user.py            # User authentication model
+│   │   ├── session.py         # UserSession model
+│   │   └── vocabulary.py      # VocabularyWord, SentenceTemplate, WordPractice
+│   ├── routes/                # Blueprint routes (URL handlers)
+│   │   ├── __init__.py        # Blueprint exports
+│   │   ├── auth.py            # Authentication routes (/login, /register, /logout)
+│   │   ├── main.py            # Main app routes (/)
+│   │   └── api.py             # REST API routes (/api/*)
+│   ├── services/              # Business logic layer
+│   │   ├── __init__.py        # Service exports
+│   │   ├── session_service.py # Session management
+│   │   ├── stats_service.py   # Statistics and progress tracking
+│   │   └── sentence_service.py# Sentence generation
+│   ├── static/                # Static assets
+│   │   ├── css/               # Stylesheets
+│   │   │   ├── input.css      # Tailwind source file
+│   │   │   └── output.css     # Generated CSS (gitignored)
+│   │   └── js/                # JavaScript files
+│   │       └── mobile-menu.js # Mobile navigation
+│   ├── templates/             # Jinja2 templates
+│   │   ├── index.html         # Main application page
+│   │   ├── login.html         # Login page
+│   │   └── register.html      # Registration page
 │   └── utils/                 # Utilities and validators
-│       ├── __init__.py
-│       └── validators.py
-├── templates/
-│   ├── index.html             # Main application page
-│   ├── login.html             # Login page
-│   └── register.html          # Registration page
+│       ├── __init__.py        # Utility exports
+│       └── validators.py      # Marshmallow schemas
 ├── tests/
-│   └── test_app.py            # Unit tests
+│   └── test_app.py            # Unit tests (pytest)
 ├── .github/
 │   └── workflows/
 │       └── ci-cd.yml          # GitHub Actions CI/CD pipeline
-├── migrations/                # Database migrations
+├── migrations/                # Database migrations (Flask-Migrate)
 │   └── versions/
+├── docs/                       # Documentation
+│   ├── TAILWIND_BUILD.md      # Tailwind CSS build guide
+│   └── legacy/                # Legacy migration files
 ├── specs/
 │   ├── README.md              # Spec-driven development guide
 │   └── postgres-migration.md # PostgreSQL migration spec
 └── instance/
     └── spanish_vocab.db       # SQLite database (development only)
 ```
+
+### Architecture Patterns
+
+- **Application Factory**: `create_app()` function creates Flask app instances for different environments
+- **Blueprints**: Routes organized by functionality (auth, main, api) for modularity
+- **Service Layer**: Business logic separated from route handlers for testability
+- **Repository Pattern**: Models handle data access, services handle business logic
+- **Dependency Injection**: Configuration and extensions injected at app creation
 
 ## Live Deployment
 
@@ -101,6 +123,7 @@ spanish-vocab-app/
 
 - Python 3.9 or higher
 - pip (Python package manager)
+- Node.js 14+ and npm (for Tailwind CSS builds)
 - Git
 - PostgreSQL (optional, falls back to SQLite)
 
@@ -118,17 +141,23 @@ python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-3. Install dependencies:
+3. Install Python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Create environment configuration:
+4. Install Node.js dependencies and build CSS:
+```bash
+npm install
+npm run build:css
+```
+
+5. Create environment configuration:
 ```bash
 cp .env.example .env
 ```
 
-5. Edit [.env](.env) file with your settings:
+6. Edit [.env](.env) file with your settings:
 ```
 SECRET_KEY=your-secret-key-here
 FLASK_ENV=development
@@ -137,12 +166,23 @@ DATABASE_URL=sqlite:///spanish_vocab.db  # Or postgresql://...
 SENTRY_DSN=your-sentry-dsn  # Optional
 ```
 
-6. The database will auto-seed on first run! Just start the app:
+7. The database will auto-seed on first run! Just start the app:
 ```bash
 python3 run.py
 ```
 
-7. Open your browser to `http://localhost:8080`
+8. Open your browser to `http://localhost:8080`
+
+### Frontend Development
+
+When working on CSS/styling, use watch mode for automatic rebuilds:
+
+```bash
+# In a separate terminal:
+npm run watch:css
+```
+
+This watches for changes in templates and rebuilds CSS automatically. See [docs/TAILWIND_BUILD.md](docs/TAILWIND_BUILD.md) for detailed Tailwind documentation.
 
 ## Running Tests
 
@@ -500,10 +540,12 @@ Mark a word as learned or unlearned (toggle).
 ## Features Roadmap
 
 ### ✅ Completed (Current)
+- **Modular Architecture** (Application factory + Blueprints)
 - **User Authentication & Authorization** (Session-based with Flask-Login)
+- **Production Code Structure** (Services layer, model separation)
 - Git version control with GitHub
 - CI/CD Pipeline with GitHub Actions
-- PostgreSQL production database
+- PostgreSQL production database with Flask-Migrate
 - User progress tracking with persistent accounts
 - Unit tests with 90%+ coverage
 - Cloud deployment (AWS EC2)
@@ -562,9 +604,9 @@ Mark a word as learned or unlearned (toggle).
                        ↓
             ┌──────────────────────┐
             │   Flask App          │
-            │ - Routes             │
-            │ - Business Logic     │
-            │ - API Endpoints      │
+            │ - Blueprints         │
+            │ - Service Layer      │
+            │ - API Validation     │
             └──────────────────────┘
                        ↓
             ┌──────────────────────┐
