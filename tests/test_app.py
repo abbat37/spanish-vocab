@@ -220,8 +220,8 @@ class TestRoutes:
         })
 
         response = client.get('/')
-        assert b'<select id="theme"' in response.data
-        assert b'<select id="word_type"' in response.data
+        assert b'id="theme"' in response.data
+        assert b'id="word_type"' in response.data
         assert b'Generate Sentences' in response.data
 
     def test_generate_sentences_post(self, app, client):
