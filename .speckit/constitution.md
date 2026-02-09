@@ -36,10 +36,10 @@ Build a web application for learning Spanish vocabulary through interactive sent
 - **Why not raw SQL:** Prevents SQL injection, database-agnostic code
 - **Trade-off:** Learning curve, but worth the safety and flexibility
 
-**Hosting: Render**
-- **Why:** Free tier, auto-deploys from GitHub, simple setup
-- **Future:** May migrate to AWS for learning purposes
-- **Trade-off:** Cold starts on free tier, but acceptable for learning project
+**Hosting: AWS EC2**
+- **Why:** Full control, production experience, no cold starts
+- **Infrastructure:** Nginx + Gunicorn + systemd process management
+- **Trade-off:** More setup/maintenance, but better learning experience
 
 **CI/CD: GitHub Actions**
 - **Why:** Free, integrated with GitHub, industry standard
@@ -213,23 +213,23 @@ Closes #15
 - Database: SQLite (file-based)
 - Debug mode: ON
 - Hot reload: ON
-- URL: http://localhost:5000
+- URL: http://localhost:8080
 
-**Production (Render):**
+**Production (AWS EC2):**
 - Database: PostgreSQL
 - Debug mode: OFF
-- Server: Gunicorn
-- URL: https://spanish-vocab-*.onrender.com
+- Server: Gunicorn + Nginx
+- URL: https://spanish-vocab.duckdns.org
 
 ### Deployment Process
 
 **Automated via CI/CD:**
 1. Developer pushes to main branch
 2. GitHub Actions runs tests
-3. If tests pass → Trigger Render deployment
+3. If tests pass → Deploy to EC2 via SSH
 4. If tests fail → Block deployment
-5. Render builds and deploys app
-6. Monitoring via Render dashboard
+5. EC2 pulls latest code and restarts services
+6. Monitoring via logs and systemd status
 
 ### Environment Variables
 
@@ -240,7 +240,7 @@ Closes #15
 
 **Stored in:**
 - Local: `.env` file (gitignored)
-- Production: Render environment variables
+- Production: `.env` file on EC2 (secure permissions)
 - CI/CD: GitHub Secrets
 
 ---
@@ -356,15 +356,17 @@ def generate_sentences(theme, word_type, session_id=None):
 - [x] Cloud deployment
 - [x] Spec-driven development
 
-### Intermediate Level (In Progress)
-- [ ] PostgreSQL migration
-- [ ] Error tracking (Sentry)
-- [ ] API design & validation
-- [ ] User authentication
-- [ ] Application logging
+### Intermediate Level (Completed)
+- [x] PostgreSQL migration
+- [x] Error tracking (Sentry)
+- [x] API design & validation
+- [x] User authentication
+- [x] Application logging
 
-### Professional Level (Future)
-- [ ] AWS deployment
+### Professional Level (In Progress)
+- [x] AWS EC2 deployment
+- [x] Nginx reverse proxy
+- [x] systemd process management
 - [ ] Docker containerization
 - [ ] Monitoring & observability
 - [ ] Load testing

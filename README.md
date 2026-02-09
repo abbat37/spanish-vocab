@@ -35,7 +35,7 @@ A production-grade Flask web application for learning Spanish vocabulary through
 ### Infrastructure
 - **Web Server**: Nginx (reverse proxy with SSL termination)
 - **SSL/TLS**: Let's Encrypt (auto-renewal via certbot)
-- **Hosting**: AWS EC2 + Render
+- **Hosting**: AWS EC2
 - **Domain**: DuckDNS (free DNS service)
 - **CI/CD**: GitHub Actions with automated testing and deployment
 
@@ -48,32 +48,52 @@ A production-grade Flask web application for learning Spanish vocabulary through
 
 ```
 spanish-vocab-app/
-├── app.py                      # Main Flask application
-├── database.py                 # Database models and configuration
-├── seed_database.py            # Database seeding script
-├── deploy.sh                   # EC2 deployment script
+├── run.py                      # Application entry point
 ├── requirements.txt            # Python dependencies
 ├── .env                        # Environment variables (not in git)
-├── .env.example               # Example environment variables
 ├── .gitignore                 # Git ignore rules
+├── app/
+│   ├── __init__.py            # Application factory
+│   ├── config.py              # Configuration management
+│   ├── models/                # Database models
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── session.py
+│   │   └── vocabulary.py
+│   ├── routes/                # Blueprint routes
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── main.py
+│   │   └── api.py
+│   ├── services/              # Business logic
+│   │   ├── __init__.py
+│   │   ├── session_service.py
+│   │   ├── stats_service.py
+│   │   └── sentence_service.py
+│   └── utils/                 # Utilities and validators
+│       ├── __init__.py
+│       └── validators.py
 ├── templates/
-│   └── index.html             # Main HTML template with dashboard
+│   ├── index.html             # Main application page
+│   ├── login.html             # Login page
+│   └── register.html          # Registration page
 ├── tests/
 │   └── test_app.py            # Unit tests
 ├── .github/
 │   └── workflows/
 │       └── ci-cd.yml          # GitHub Actions CI/CD pipeline
+├── migrations/                # Database migrations
+│   └── versions/
 ├── specs/
 │   ├── README.md              # Spec-driven development guide
 │   └── postgres-migration.md # PostgreSQL migration spec
 └── instance/
-    └── spanish_vocab.db       # SQLite database (development)
+    └── spanish_vocab.db       # SQLite database (development only)
 ```
 
-## Live Deployments
+## Live Deployment
 
-- **EC2 (Production)**: https://spanish-vocab.duckdns.org
-- **Render (Backup)**: https://spanish-vocab.onrender.com
+- **Production**: https://spanish-vocab.duckdns.org (AWS EC2)
 
 ## Local Development Setup
 
@@ -119,10 +139,10 @@ SENTRY_DSN=your-sentry-dsn  # Optional
 
 6. The database will auto-seed on first run! Just start the app:
 ```bash
-python3 app.py
+python3 run.py
 ```
 
-7. Open your browser to `http://localhost:5000`
+7. Open your browser to `http://localhost:8080`
 
 ## Running Tests
 
@@ -276,26 +296,9 @@ sudo systemctl restart nginx
 sudo certbot --nginx -d spanish-vocab.duckdns.org
 ```
 
-### Deploying to Render (Backup/Staging)
+### Automated Deployment
 
-1. Create a [Render](https://render.com) account
-
-2. Create a new Web Service:
-   - Connect your GitHub repository
-   - Branch: `main`
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `gunicorn run:app`
-
-3. Set Environment Variables:
-   ```
-   SECRET_KEY=your-production-secret-key
-   FLASK_ENV=production
-   FLASK_DEBUG=False
-   DATABASE_URL=<Render will provide PostgreSQL URL>
-   SENTRY_DSN=your-sentry-dsn
-   ```
-
-4. Render auto-deploys on push to main!
+The application automatically deploys to EC2 via GitHub Actions CI/CD pipeline when you push to the main branch. See the CI/CD Pipeline section below for details.
 
 ## CI/CD Pipeline
 
@@ -304,13 +307,11 @@ Automated via GitHub Actions ([.github/workflows/ci-cd.yml](.github/workflows/ci
 **On every push to main:**
 1. **Test Job**: Runs pytest against PostgreSQL
 2. **Lint Job**: Checks code quality (flake8, black)
-3. **Deploy to Render**: Triggers webhook deployment
-4. **Deploy to EC2**: SSH deployment via automated script
+3. **Deploy to EC2**: SSH deployment via automated script
 
 **GitHub Secrets Required:**
-- `RENDER_DEPLOY_HOOK`: Webhook URL from Render
 - `EC2_SSH_KEY`: Private SSH key for EC2
-- `EC2_HOST`: EC2 public IP
+- `EC2_HOST`: EC2 public IP or domain
 - `EC2_USER`: `ubuntu`
 
 **Pipeline Stages:**
@@ -320,7 +321,6 @@ Push to main
 Run Tests (PostgreSQL) ──→ Pass ──┐
 Run Linting ──→ Pass ──────────────┤
                                    ↓
-                            Deploy to Render
                             Deploy to EC2 (SSH)
                                    ↓
                             Live in Production!
@@ -339,35 +339,21 @@ Without migrations, schema changes can break production:
 
 ### Running Migrations in Production
 
-**For Render (fix required):**
-
-Option 1 - Using the migration script:
-```bash
-# Clone repo on your local machine
-git pull origin main
-
-# Set DATABASE_URL to your Render database
-export DATABASE_URL="your-render-database-url"
-
-# Run migration
-python3 run_migration.py
-```
-
-Option 2 - Direct SQL (via Render dashboard):
-```bash
-# In Render Dashboard → Database → Shell
-psql $DATABASE_URL -f migrate_add_user_auth.sql
-```
-
-Option 3 - Manual SQL:
-```sql
--- Add user_id column if missing
-ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id);
-CREATE INDEX IF NOT EXISTS ix_user_sessions_user_id ON user_sessions(user_id);
-```
-
 **For EC2:**
-Already fixed! The column was added manually via SSH.
+Migrations are applied automatically during deployment via the CI/CD pipeline. The deployment script runs `flask db upgrade` to apply any pending migrations.
+
+**Manual Migration (if needed):**
+```bash
+# SSH into EC2
+ssh -i ~/.ssh/spanish-vocab-key.pem ubuntu@YOUR_IP
+
+# Navigate to app directory
+cd ~/spanish-vocab
+source venv/bin/activate
+
+# Apply migrations
+python3 -m flask db upgrade
+```
 
 ### Creating New Migrations (For Future Changes)
 
@@ -397,7 +383,6 @@ When you modify database models in `database.py`:
 
 5. **Apply in production:**
    - EC2: Migrations run automatically in deploy script
-   - Render: Run `flask db upgrade` after deployment
 
 ### Migration Best Practices
 
@@ -521,7 +506,7 @@ Mark a word as learned or unlearned (toggle).
 - PostgreSQL production database
 - User progress tracking with persistent accounts
 - Unit tests with 90%+ coverage
-- Cloud deployment (EC2 + Render)
+- Cloud deployment (AWS EC2)
 - HTTPS with Let's Encrypt
 - Nginx reverse proxy
 - systemd process management
@@ -605,7 +590,6 @@ GitHub Actions Workflow
 └──────────────────────────────┘
       ↓ (if pass)
 ┌──────────────────────────────┐
-│  Deploy to Render (webhook)  │
 │  Deploy to EC2 (SSH + script)│
 └──────────────────────────────┘
       ↓
@@ -656,8 +640,7 @@ For issues or questions:
 
 ---
 
-**Live Production Site:** https://spanish-vocab.duckdns.org
-**Staging/Backup:** https://spanish-vocab.onrender.com
+**Live Site:** https://spanish-vocab.duckdns.org
 **Repository:** https://github.com/abbat37/spanish-vocab
 
 Made with ❤️ for Spanish learners and aspiring web developers
