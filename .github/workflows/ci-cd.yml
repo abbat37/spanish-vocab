@@ -148,13 +148,70 @@ jobs:
           black --check --diff .
         continue-on-error: true  # Don't fail the build on formatting issues (yet)
 
-  # JOB 3: DEPLOY TO EC2
-  # Deploy to AWS EC2 only if tests pass
+  # JOB 3: BUILD CSS
+  # Build and validate CSS before deployment
+  build-css:
+    name: Build and Validate CSS
+    runs-on: ubuntu-latest
+
+    needs: [test, lint]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build production CSS
+        run: npm run build:css:prod
+
+      - name: Verify CSS was created
+        run: |
+          if [ ! -f app/static/css/output.css ]; then
+            echo "❌ ERROR: CSS file was not created!"
+            exit 1
+          fi
+
+          FILE_SIZE=$(stat -c%s app/static/css/output.css 2>/dev/null || stat -f%z app/static/css/output.css)
+          echo "✅ CSS file created: ${FILE_SIZE} bytes"
+
+          if [ "$FILE_SIZE" -lt 1000 ]; then
+            echo "❌ ERROR: CSS file is too small (${FILE_SIZE} bytes)"
+            exit 1
+          fi
+
+      - name: Set up Python for validation tests
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Run deployment validation tests
+        run: |
+          pip install pytest
+          pytest tests/test_deployment.py -v
+
+      - name: Upload CSS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-css
+          path: app/static/css/output.css
+          retention-days: 1
+
+  # JOB 4: DEPLOY TO EC2
+  # Deploy to AWS EC2 only if CSS build succeeds
   deploy-ec2:
     name: Deploy to EC2
     runs-on: ubuntu-latest
 
-    needs: [test, lint]
+    needs: [build-css]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
@@ -165,30 +222,63 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e  # Exit on any error
+
+            echo "🚀 Starting deployment..."
+
             # Navigate to app directory
             cd ~/spanish-vocab
 
             # Pull latest code
+            echo "📥 Pulling latest code..."
             git pull origin main
 
+            # Check if Node.js is installed
+            echo "🔍 Checking Node.js..."
+            if ! command -v node &> /dev/null; then
+                echo "❌ ERROR: Node.js is not installed!"
+                echo "Install with: curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs"
+                exit 1
+            fi
+            echo "✅ Node.js $(node --version)"
+
             # Install/update Node.js dependencies
+            echo "📦 Installing npm dependencies..."
             npm install
 
             # Build production CSS
+            echo "🎨 Building production CSS..."
             npm run build:css:prod
 
+            # Verify CSS was created
+            if [ ! -f app/static/css/output.css ]; then
+                echo "❌ ERROR: CSS file was not created!"
+                exit 1
+            fi
+            CSS_SIZE=$(stat -c%s app/static/css/output.css)
+            echo "✅ CSS built successfully (${CSS_SIZE} bytes)"
+
             # Install/update Python dependencies
+            echo "🐍 Installing Python dependencies..."
             source venv/bin/activate
             pip install -r requirements.txt
 
             # Run database migrations
+            echo "🗄️  Running database migrations..."
             python3 -m flask db upgrade
 
             # Restart the application
+            echo "🔄 Restarting application..."
             sudo systemctl restart spanish-vocab
 
+            # Wait for service to start
+            sleep 2
+
             # Check if service is running
+            echo "✅ Checking service status..."
             sudo systemctl status spanish-vocab --no-pager
+
+            echo "✨ Deployment completed successfully!"
 
       - name: Deployment notification
         run: |
