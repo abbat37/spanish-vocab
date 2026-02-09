@@ -165,10 +165,33 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Run the deployment script on EC2
-            /home/ubuntu/deploy.sh
+            # Navigate to app directory
+            cd ~/spanish-vocab
+
+            # Pull latest code
+            git pull origin main
+
+            # Install/update Node.js dependencies
+            npm install
+
+            # Build production CSS
+            npm run build:css:prod
+
+            # Install/update Python dependencies
+            source venv/bin/activate
+            pip install -r requirements.txt
+
+            # Run database migrations
+            python3 -m flask db upgrade
+
+            # Restart the application
+            sudo systemctl restart spanish-vocab
+
+            # Check if service is running
+            sudo systemctl status spanish-vocab --no-pager
 
       - name: Deployment notification
         run: |
           echo "🚀 EC2 deployment completed successfully!"
-          echo "App is live at https://spanish-vocab.duckdns.org"
+          echo "✅ CSS built and optimized"
+          echo "🌐 App is live at https://spanish-vocab.duckdns.org"
