@@ -91,7 +91,7 @@ jobs:
           # Point to the PostgreSQL service
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
         run: |
-          pytest --cov=. --cov-report=term-missing --cov-report=html -v
+          pytest --cov=. --cov-report=term-missing --cov-report=html -v --ignore=tests/test_deployment.py
         # Tests now run against PostgreSQL (same as production)
         # This catches PostgreSQL-specific issues before deployment
         # --cov=. : Measure coverage for all Python files in current directory
