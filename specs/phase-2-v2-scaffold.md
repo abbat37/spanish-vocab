@@ -984,3 +984,33 @@ By completing Phase 2, you'll have learned:
 ---
 
 **Ready to start Phase 2? Let's build the V2 scaffold! 🚀**
+
+---
+
+## Future Enhancements (Post-Phase 2)
+
+Based on user feedback, the following enhancements will be implemented in later phases:
+
+### Phase 4: Bulk Entry & LLM Auto-Tagging
+- **Bulk Word Input:** Paste comma/newline-separated word lists (no translations required)
+- **Smart Text Cleaning:** Strip extra whitespace, newlines, special characters (except `/`)
+- **LLM Processing:** Auto-translate, auto-tag word type (verb/noun/phrase), auto-assign themes
+- **Multi-Theme Support:** Words can have 2-3 relevant themes
+- **Predefined Theme List:** Weather, Food & Cooking, Work, Travel, Family, Emotions, Sports, Home, Health, Other
+- **Immediate Feedback:** Loading state during LLM processing, then show results table
+
+### Phase 5: Advanced Word Management
+- **Search & Filter:** Search by word, filter by type, filter by theme (AND logic)
+- **Edit Word Modal:** Pop-up editor for manual override (word, translation, tags)
+- **Delete Words:** Remove entries from vocabulary
+- **Pagination:** 20-50 words per page for large vocabularies
+
+### Phase 5: Study/Revise with Filters
+- **Theme Filter:** Select which theme(s) to study
+- **Type Filter:** Select which word types to practice
+- **Empty State:** Show "No words found" message if filters don't match any words
+- **Filter Reset:** Filters default to "All" on page load
+
+---
+
+**Phase 2 Status:** ✅ COMPLETE
