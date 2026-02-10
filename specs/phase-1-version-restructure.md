@@ -795,7 +795,7 @@ __all__ = ['auth_bp']
 **Goal:** Verify v1 works with `/v1` prefix and auth still works
 
 #### Test 1: Auth Flow (Shared Routes)
-- [ ] Navigate to `http://localhost:5000/register`
+- [ ] Navigate to `http://localhost:8080/register`
 - [ ] Register a new account
 - [ ] Verify redirect to `/v1/` (not `/`)
 - [ ] Log out
@@ -803,7 +803,7 @@ __all__ = ['auth_bp']
 - [ ] Verify redirect to `/v1/`
 
 #### Test 2: V1 Functionality
-- [ ] Access `http://localhost:5000/v1/`
+- [ ] Access `http://localhost:8080/v1/`
 - [ ] Select theme and word type
 - [ ] Click "Generate Sentences"
 - [ ] Mark a word as learned
@@ -811,12 +811,12 @@ __all__ = ['auth_bp']
 - [ ] Check API endpoint: `/v1/api/mark-learned`
 
 #### Test 3: V2 Placeholder
-- [ ] Navigate to `http://localhost:5000/v2/`
+- [ ] Navigate to `http://localhost:8080/v2/`
 - [ ] Verify placeholder page displays
 - [ ] Click "Return to V1" link
 
 #### Test 4: Root Redirect
-- [ ] Navigate to `http://localhost:5000/` (root)
+- [ ] Navigate to `http://localhost:8080/` (root)
 - [ ] Should automatically redirect to `/v1/`
 - [ ] Verify you land on the v1 practice page
 

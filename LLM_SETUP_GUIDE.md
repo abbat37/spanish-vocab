@@ -35,38 +35,36 @@ LLM_PROVIDER=openai
 
 #### 3. Test Connection
 ```bash
-python3 test_openai_connection.py
+python3 scripts/test_openai_connection.py
 ```
 
 You should see:
 ```
 ✅ Connection successful!
    Test response: Hello
-   Model used: gpt-4o-mini-2024-07-18
+   Model used: gpt-4o-mini
    Tokens used: Input=15, Output=1
    Estimated cost: $0.000003
 ```
 
+#### 4. Verify in App
+The app runs on port 8080:
+```bash
+python3 run.py
+# Visit: http://localhost:8080
+```
+
 ---
 
-## Alternative: Portkey with OpenAI (Optional)
+## Why Not Portkey?
 
-If you want to learn about Portkey for future projects:
+For this learning project, we're using OpenAI directly because:
+- ✅ **Simpler:** One API key, no proxy layer
+- ✅ **Cheaper:** No additional costs
+- ✅ **Faster:** Direct connection
+- ✅ **Easier to debug:** Clearer error messages
 
-### Portkey Benefits:
-- ✅ **Free tier:** 100,000 requests/month
-- ✅ **Analytics:** Track token usage, costs, latency
-- ✅ **Caching:** Reduce costs by caching repeated requests
-- ✅ **Fallbacks:** Auto-switch between providers if one fails
-- ✅ **Rate limiting:** Prevent accidental overspending
-
-### Portkey Setup:
-1. Sign up at https://portkey.ai (free tier)
-2. Add your OpenAI API key in Portkey dashboard
-3. Get your Portkey API key
-4. Update `.env` with Portkey config
-
-**However, for this learning project, Portkey is overkill.** Use OpenAI directly.
+Portkey is great for production apps with multiple providers, but adds unnecessary complexity for learning.
 
 ---
 
@@ -114,9 +112,10 @@ This prevents:
 ## Next Steps
 
 1. ✅ Get OpenAI API key from https://platform.openai.com/api-keys
-2. ✅ Add to `.env` file
-3. ✅ Run `python3 test_openai_connection.py`
-4. ✅ Start implementing Phase 4!
+2. ✅ Add to `.env` file: `OPENAI_API_KEY=sk-proj-...`
+3. ✅ Test: `python3 scripts/test_openai_connection.py`
+4. ✅ Run app: `python3 run.py` (localhost:8080)
+5. ✅ Start implementing Phase 4!
 
 ---
 
