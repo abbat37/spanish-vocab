@@ -9,8 +9,9 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app import create_app
-from app.models import db, VocabularyWord, SentenceTemplate, WordPractice, UserSession, User
-from app.services import SentenceService, StatsService
+from app.shared import db, User
+from app.v1.models import VocabularyWord, SentenceTemplate, WordPractice, UserSession
+from app.v1.services import SentenceService, StatsService
 
 
 @pytest.fixture
@@ -178,7 +179,7 @@ class TestAuthentication:
 
     def test_protected_route_requires_login(self, app, client):
         """Test that index route requires login"""
-        response = client.get('/')
+        response = client.get('/v1/')
         # Should redirect to login page
         assert response.status_code == 302
         assert '/login' in response.location
@@ -201,9 +202,9 @@ class TestRoutes:
             'password': 'testpassword123'
         })
 
-        response = client.get('/')
+        response = client.get('/v1/')
         assert response.status_code == 200
-        assert b'Spanish Word Learner' in response.data
+        assert b'Spanish Learner' in response.data
 
     def test_home_page_has_form(self, app, client):
         """Test that home page contains the form elements"""
@@ -219,7 +220,7 @@ class TestRoutes:
             'password': 'testpassword123'
         })
 
-        response = client.get('/')
+        response = client.get('/v1/')
         assert b'id="theme"' in response.data
         assert b'id="word_type"' in response.data
         assert b'Generate Sentences' in response.data
@@ -238,7 +239,7 @@ class TestRoutes:
             'password': 'testpassword123'
         })
 
-        response = client.post('/', data={
+        response = client.post('/v1/', data={
             'theme': 'cooking',
             'word_type': 'verb'
         }, follow_redirects=True)
@@ -260,7 +261,7 @@ class TestRoutes:
             'password': 'testpassword123'
         })
 
-        response = client.post('/', data={
+        response = client.post('/v1/', data={
             'theme': 'invalid',
             'word_type': 'verb'
         })
@@ -418,7 +419,7 @@ class TestProgressTracking:
         with client.session_transaction() as sess:
             sess['user_session_id'] = test_session_id
 
-        response = client.post('/api/mark-learned',
+        response = client.post('/v1/api/mark-learned',
                               json={'word_id': 1},
                               content_type='application/json')
 
