@@ -53,11 +53,26 @@ class TestDeploymentValidation:
 
     def test_templates_exist(self):
         """Verify critical templates exist"""
-        templates = ['index.html', 'login.html', 'register.html']
-        template_dir = os.path.join('app', 'templates')
+        # Shared templates (auth)
+        shared_templates = [
+            os.path.join('app', 'templates', 'login.html'),
+            os.path.join('app', 'templates', 'register.html'),
+            os.path.join('app', 'templates', 'base.html'),
+        ]
 
-        for template in templates:
-            template_path = os.path.join(template_dir, template)
+        # V1 templates
+        v1_templates = [
+            os.path.join('app', 'v1', 'templates', 'v1', 'index.html'),
+        ]
+
+        # V2 templates
+        v2_templates = [
+            os.path.join('app', 'v2', 'templates', 'v2', 'index.html'),
+        ]
+
+        all_templates = shared_templates + v1_templates + v2_templates
+
+        for template_path in all_templates:
             assert os.path.exists(template_path), f"Template not found: {template_path}"
 
     def test_package_json_exists(self):
@@ -88,6 +103,10 @@ class TestCSSContent:
 
     def test_css_is_minified_in_prod(self, css_content):
         """Production CSS should be minified (no unnecessary whitespace)"""
+        # Skip in development - only validate in CI/production
+        if os.getenv('CI') != 'true':
+            pytest.skip("Minification check only runs in CI/production")
+
         # Check if this is a production build
         # Minified CSS has very few newlines
         newline_count = css_content.count('\n')
