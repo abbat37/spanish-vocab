@@ -283,7 +283,7 @@
         });
 
         function markLearned(wordId, button) {
-            fetch('/api/mark-learned', {
+            fetch('/v1/api/mark-learned', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
