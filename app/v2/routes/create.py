@@ -3,7 +3,8 @@ V2 Create Route
 Allows users to add/edit words in their vocabulary database
 """
 from flask import render_template, request, flash, redirect, url_for
-from flask_login import login_required
+from flask_login import login_required, current_user
+from app.v2.services.word_service import WordService
 
 
 def register_create_routes(bp):
@@ -15,11 +16,10 @@ def register_create_routes(bp):
         """Create/edit words page"""
 
         if request.method == 'POST':
-            # TODO Phase 4: Handle word creation
-            # Removed flash message to prevent cross-route contamination
+            # TODO Phase 5: Handle single word creation
             return redirect(url_for('v2.create'))
 
-        # TODO Phase 5: Load user's existing words
-        words = []  # Placeholder
+        # Load user's existing words
+        words = WordService.get_user_words(current_user.id)
 
         return render_template('v2/create.html', words=words)
