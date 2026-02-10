@@ -1,13 +1,18 @@
 """
-V2 Routes (Placeholder)
-Will be implemented in Phase 2
+V2 Route Registration
+Registers all v2 routes on the blueprint
 """
-from flask import render_template
+
 
 def register_routes(bp):
-    """Register v2 routes on the blueprint"""
+    """Register all v2 routes"""
+    from .dashboard import register_dashboard_routes
+    from .create import register_create_routes
+    from .study import register_study_routes
+    from .revise import register_revise_routes
 
-    @bp.route('/')
-    def index():
-        """V2 home page (placeholder)"""
-        return render_template('v2/index.html')
+    # Register all route modules
+    register_dashboard_routes(bp)
+    register_create_routes(bp)
+    register_study_routes(bp)
+    register_revise_routes(bp)

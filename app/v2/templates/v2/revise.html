@@ -1,0 +1,122 @@
+{% extends "v2/base.html" %}
+
+{% block title %}Revise - V2{% endblock %}
+
+{% block v2_content %}
+<div class="max-w-3xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-6 text-center">
+        <h1 class="text-2xl font-bold text-gray-900">Practice Writing</h1>
+        <p class="mt-1 text-gray-600">Write sentences using your learned words</p>
+    </div>
+
+    <!-- Practice Card -->
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
+        <!-- Practice Word -->
+        <div class="text-center mb-6">
+            <p class="text-sm text-gray-500 mb-2">Write a sentence using:</p>
+            <p class="text-3xl font-bold text-gray-900 mb-1">{{ word.spanish }}</p>
+            <p class="text-lg text-gray-600">({{ word.english }})</p>
+            <div class="mt-3">
+                <span class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{{ word.word_type }}</span>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="border-t border-gray-200 my-6"></div>
+
+        <!-- Sentence Input -->
+        <div class="mb-6">
+            <label for="sentence" class="block text-sm font-medium text-gray-700 mb-2">
+                Your Spanish Sentence:
+            </label>
+            <textarea id="sentence" name="sentence" rows="4"
+                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                      placeholder="Write your sentence here..."></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-between">
+            <button id="tipButton" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
+                💡 Show Translation
+            </button>
+            <button id="submitButton" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition">
+                Check Answer
+            </button>
+        </div>
+    </div>
+
+    <!-- Feedback Section (hidden by default) -->
+    <div id="feedbackSection" class="bg-white rounded-lg shadow-lg p-8 mb-6 hidden">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">AI Feedback:</h3>
+
+        <!-- Correctness Indicator -->
+        <div id="correctnessIndicator" class="mb-4">
+            <!-- Will be populated by JS -->
+        </div>
+
+        <!-- Feedback Text -->
+        <div id="feedbackText" class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+            <!-- Will be populated by JS -->
+        </div>
+
+        <!-- Suggestions -->
+        <div id="suggestions" class="mb-4">
+            <!-- Will be populated by JS -->
+        </div>
+
+        <!-- Next Word Button -->
+        <div class="text-center">
+            <button class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition">
+                Next Word →
+            </button>
+        </div>
+    </div>
+
+    <!-- Tip Section (hidden by default) -->
+    <div id="tipSection" class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6 hidden">
+        <p class="text-sm font-medium text-gray-700 mb-2">Translation Tip:</p>
+        <p class="text-gray-800">{{ word.english }}</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block v2_scripts %}
+<script>
+    // Simple JavaScript for Phase 2 (will enhance in Phase 5)
+    const submitButton = document.getElementById('submitButton');
+    const tipButton = document.getElementById('tipButton');
+    const feedbackSection = document.getElementById('feedbackSection');
+    const tipSection = document.getElementById('tipSection');
+    const sentenceInput = document.getElementById('sentence');
+
+    tipButton.addEventListener('click', () => {
+        tipSection.classList.toggle('hidden');
+    });
+
+    submitButton.addEventListener('click', async () => {
+        const sentence = sentenceInput.value.trim();
+
+        if (!sentence) {
+            alert('Please write a sentence first!');
+            return;
+        }
+
+        // TODO Phase 4: Send to backend for AI feedback
+        // For now, show placeholder feedback
+        document.getElementById('correctnessIndicator').innerHTML = `
+            <div class="flex items-center text-green-600">
+                <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="font-semibold">Good job!</span>
+            </div>
+        `;
+
+        document.getElementById('feedbackText').textContent =
+            'AI feedback will be implemented in Phase 4. Your sentence looks great!';
+
+        feedbackSection.classList.remove('hidden');
+    });
+</script>
+{% endblock %}

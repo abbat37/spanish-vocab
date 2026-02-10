@@ -1,0 +1,122 @@
+{% extends "v2/base.html" %}
+
+{% block title %}Dashboard - V2{% endblock %}
+
+{% block v2_content %}
+<!-- Welcome Section -->
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Welcome to V2</h1>
+    <p class="mt-2 text-gray-600">
+        Build your vocabulary with AI-powered learning
+    </p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Total Words Card -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
+                <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+            </div>
+            <div class="ml-5">
+                <p class="text-sm font-medium text-gray-500">Total Words</p>
+                <p class="text-2xl font-semibold text-gray-900">{{ stats.total_words }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Learned Words Card -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
+                <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="ml-5">
+                <p class="text-sm font-medium text-gray-500">Learned</p>
+                <p class="text-2xl font-semibold text-gray-900">{{ stats.learned_words }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Practice Count Card -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
+                <svg class="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+            </div>
+            <div class="ml-5">
+                <p class="text-sm font-medium text-gray-500">Practice Sessions</p>
+                <p class="text-2xl font-semibold text-gray-900">{{ stats.practice_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Create Button -->
+        <a href="{{ url_for('v2.create') }}"
+           class="flex items-center justify-center px-4 py-6 bg-blue-50 border-2 border-blue-200 rounded-lg hover:bg-blue-100 transition">
+            <div class="text-center">
+                <svg class="mx-auto h-12 w-12 text-blue-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <p class="text-lg font-medium text-blue-900">Add Words</p>
+                <p class="text-sm text-blue-700">Build your database</p>
+            </div>
+        </a>
+
+        <!-- Study Button -->
+        <a href="{{ url_for('v2.study') }}"
+           class="flex items-center justify-center px-4 py-6 bg-green-50 border-2 border-green-200 rounded-lg hover:bg-green-100 transition">
+            <div class="text-center">
+                <svg class="mx-auto h-12 w-12 text-green-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <p class="text-lg font-medium text-green-900">Study</p>
+                <p class="text-sm text-green-700">Learn with flashcards</p>
+            </div>
+        </a>
+
+        <!-- Revise Button -->
+        <a href="{{ url_for('v2.revise') }}"
+           class="flex items-center justify-center px-4 py-6 bg-purple-50 border-2 border-purple-200 rounded-lg hover:bg-purple-100 transition">
+            <div class="text-center">
+                <svg class="mx-auto h-12 w-12 text-purple-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <p class="text-lg font-medium text-purple-900">Revise</p>
+                <p class="text-sm text-purple-700">Practice writing</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- How V2 Works Section -->
+<div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-3">How V2 Works</h3>
+    <div class="space-y-3 text-gray-700">
+        <div class="flex items-start">
+            <span class="flex-shrink-0 bg-blue-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-sm font-medium mr-3">1</span>
+            <p><strong>Create:</strong> Add Spanish words with English translations. Tag them by type (verb, noun, adj) and theme (cooking, work, etc.)</p>
+        </div>
+        <div class="flex items-start">
+            <span class="flex-shrink-0 bg-blue-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-sm font-medium mr-3">2</span>
+            <p><strong>Study:</strong> See your words in flashcard format with AI-generated example sentences. Mark words as "learned" when ready.</p>
+        </div>
+        <div class="flex items-start">
+            <span class="flex-shrink-0 bg-blue-600 text-white rounded-full h-6 w-6 flex items-center justify-center text-sm font-medium mr-3">3</span>
+            <p><strong>Revise:</strong> Practice using learned words by writing your own sentences. Get instant AI feedback and suggestions.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

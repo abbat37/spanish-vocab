@@ -105,16 +105,17 @@ def test_v1_accessible_when_authenticated(auth_client):
 # =====================================================
 # Test 3: V2 Placeholder Works
 # =====================================================
-def test_v2_placeholder_accessible(client):
-    """Test that /v2/ shows placeholder page"""
-    response = client.get('/v2/')
+def test_v2_placeholder_accessible(auth_client):
+    """Test that /v2/ shows dashboard page (Phase 2)"""
+    response = auth_client.get('/v2/')
     assert response.status_code == 200
-    assert b'Version 2 - Coming Soon' in response.data
+    # Phase 2: V2 now shows dashboard instead of "Coming Soon"
+    assert b'Welcome to V2' in response.data or b'Dashboard' in response.data
 
 
-def test_v2_has_back_to_v1_link(client):
+def test_v2_has_back_to_v1_link(auth_client):
     """Test that v2 has link back to v1"""
-    response = client.get('/v2/')
+    response = auth_client.get('/v2/')
     assert b'Back to V1' in response.data or b'/v1/' in response.data
 
 
@@ -137,9 +138,9 @@ def test_v1_css_loads(auth_client):
     assert re.search(css_pattern, html), "CSS link tag not found in v1 HTML"
 
 
-def test_v2_css_loads(client):
+def test_v2_css_loads(auth_client):
     """CRITICAL: Test that v2 page references CSS file"""
-    response = client.get('/v2/')
+    response = auth_client.get('/v2/')
     assert response.status_code == 200
 
     html = response.data.decode('utf-8')
@@ -185,9 +186,9 @@ def test_v1_has_try_v2_button(auth_client):
     print(f"\nV1 has version switcher: {has_v2_link}")
 
 
-def test_v2_has_back_to_v1_button(client):
+def test_v2_has_back_to_v1_button(auth_client):
     """Test that v2 shows 'Back to V1' link"""
-    response = client.get('/v2/')
+    response = auth_client.get('/v2/')
     html = response.data.decode('utf-8')
 
     assert 'Back to V1' in html or '/v1/' in html, "v2 missing link back to v1"
