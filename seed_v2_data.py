@@ -14,7 +14,7 @@ with app.app_context():
     user = User.query.filter_by(email='test@example.com').first()
     if not user:
         user = User(email='test@example.com')
-        user.set_password('password123')
+        user.set_password('SpanishVocab2024!')
         db.session.add(user)
         db.session.commit()
         print(f"Created test user: {user.email}")
@@ -226,5 +226,5 @@ with app.app_context():
     db.session.commit()
     print(f"\n✅ Successfully seeded {created_count} words with {created_count * 3} example sentences!")
     print(f"   User: {user.email}")
-    print(f"   Password: password123")
+    print(f"   Password: SpanishVocab2024!")
     print(f"\n   Log in and visit /v2/ to see the vocabulary!")

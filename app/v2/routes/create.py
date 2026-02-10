@@ -15,8 +15,8 @@ def register_create_routes(bp):
         """Create/edit words page"""
 
         if request.method == 'POST':
-            # TODO Phase 5: Handle word creation
-            flash('Word creation will be implemented in Phase 5', 'info')
+            # TODO Phase 4: Handle word creation
+            # Removed flash message to prevent cross-route contamination
             return redirect(url_for('v2.create'))
 
         # TODO Phase 5: Load user's existing words
