@@ -67,7 +67,7 @@ def create_app(config_name=None):
     from app.v1 import create_v1_blueprint
     v1_blueprints = create_v1_blueprint()
     app.register_blueprint(v1_blueprints['main'], url_prefix='/v1')
-    app.register_blueprint(v1_blueprints['api'], url_prefix='/v1')
+    app.register_blueprint(v1_blueprints['api'], url_prefix='/v1/api')
 
     # Apply rate limiting to v1 API
     limiter.limit("10 per minute")(v1_blueprints['api'])
