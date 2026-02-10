@@ -19,6 +19,11 @@ class Config:
     # Rate limiting
     RATELIMIT_STORAGE_URL = os.getenv('REDIS_URL', 'memory://')
 
+    # LLM Configuration (Phase 4)
+    LLM_PROVIDER = os.getenv('LLM_PROVIDER', 'openai')
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
+
 
 class DevelopmentConfig(Config):
     """Development configuration"""

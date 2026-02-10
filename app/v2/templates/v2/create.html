@@ -10,6 +10,43 @@
         <p class="mt-1 text-gray-600">Add new vocabulary to your database</p>
     </div>
 
+    <!-- Bulk Entry Section (Phase 4) -->
+    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-lg p-6 mb-8 border border-blue-200">
+        <div class="flex items-center mb-4">
+            <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <h2 class="text-lg font-semibold text-gray-900">Bulk Entry with AI</h2>
+            <span class="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">NEW</span>
+        </div>
+        <p class="text-sm text-gray-700 mb-4">Paste multiple words (one per line or comma-separated) and let AI automatically translate and categorize them!</p>
+
+        <!-- Bulk Input Textarea -->
+        <div class="mb-4">
+            <textarea id="bulk-input"
+                      rows="8"
+                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                      placeholder="Paste words here (one per line or comma-separated)&#10;&#10;Example:&#10;Frío, Sol, Viento&#10;cocinar&#10;por cierto&#10;lejo/a"></textarea>
+        </div>
+
+        <!-- Process Button -->
+        <button id="process-btn"
+                onclick="processBulkWords()"
+                class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium transition flex items-center justify-center">
+            <span id="btn-text">Process Words with AI</span>
+            <span id="btn-loading" class="hidden">
+                <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+            </span>
+        </button>
+
+        <!-- Status Messages -->
+        <div id="bulk-status" class="mt-4 hidden"></div>
+    </div>
+
     <!-- Add Word Form -->
     <div class="bg-white rounded-lg shadow p-6 mb-8">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Add New Word</h2>
@@ -112,4 +149,101 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block v2_scripts %}
+<script>
+async function processBulkWords() {
+    const textarea = document.getElementById('bulk-input');
+    const btn = document.getElementById('process-btn');
+    const btnText = document.getElementById('btn-text');
+    const btnLoading = document.getElementById('btn-loading');
+    const statusDiv = document.getElementById('bulk-status');
+    const rawText = textarea.value.trim();
+
+    if (!rawText) {
+        showStatus('error', 'Please enter at least one word');
+        return;
+    }
+
+    // Show loading state
+    btn.disabled = true;
+    btnText.classList.add('hidden');
+    btnLoading.classList.remove('hidden');
+    textarea.disabled = true;
+    statusDiv.innerHTML = '';
+    statusDiv.classList.add('hidden');
+
+    try {
+        const response = await fetch('/v2/api/process-words', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ raw_text: rawText })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const stats = data.stats;
+            let message = `✅ Successfully processed ${stats.created} word(s)!`;
+
+            if (stats.duplicates > 0) {
+                message += ` (${stats.duplicates} duplicate(s) skipped)`;
+            }
+            if (stats.rejected > 0) {
+                message += ` (${stats.rejected} invalid word(s) rejected)`;
+            }
+
+            showStatus('success', message);
+
+            // Show errors if any
+            if (data.errors && data.errors.length > 0) {
+                const errorHtml = '<div class="mt-2 text-sm"><strong>Notes:</strong><ul class="list-disc ml-5 mt-1">' +
+                    data.errors.map(err => `<li>${err}</li>`).join('') +
+                    '</ul></div>';
+                statusDiv.innerHTML += errorHtml;
+            }
+
+            // Clear textarea on success
+            textarea.value = '';
+
+            // Reload page after 2 seconds to show new words
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showStatus('error', data.error || 'Failed to process words');
+            if (data.errors && data.errors.length > 0) {
+                const errorHtml = '<ul class="list-disc ml-5 mt-2 text-sm">' +
+                    data.errors.map(err => `<li>${err}</li>`).join('') +
+                    '</ul>';
+                statusDiv.innerHTML += errorHtml;
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showStatus('error', 'Network error. Please try again.');
+    } finally {
+        // Reset button state
+        btn.disabled = false;
+        btnText.classList.remove('hidden');
+        btnLoading.classList.add('hidden');
+        textarea.disabled = false;
+    }
+}
+
+function showStatus(type, message) {
+    const statusDiv = document.getElementById('bulk-status');
+    const bgColor = type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800';
+
+    statusDiv.innerHTML = `
+        <div class="${bgColor} border rounded-lg px-4 py-3">
+            <p class="font-medium">${message}</p>
+        </div>
+    `;
+    statusDiv.classList.remove('hidden');
+}
+</script>
 {% endblock %}
