@@ -104,9 +104,31 @@ def is_likely_spanish(word: str) -> bool:
         if re.search(pattern, word_lower):
             return True
 
-    # Check for obvious gibberish (repeated same letter)
+    # Check for obvious gibberish patterns
+    # 1. Repeated same letter (xxx, aaaa)
     if len(set(word_lower.replace(' ', ''))) <= 3 and len(word_lower) > 5:
-        return False  # Likely gibberish like "xxxyyy" or "asdfgh"
+        return False
+
+    # 2. Keyboard mashing patterns (common sequences)
+    gibberish_patterns = [
+        r'zxc',      # keyboard row
+        r'qwe',      # keyboard row
+        r'asd',      # keyboard row
+        r'fgh',      # keyboard row
+        r'jkl',      # keyboard row
+        r'xxx',      # repeated chars
+        r'yyy',      # repeated chars
+        r'zzz',      # repeated chars
+    ]
+    for pattern in gibberish_patterns:
+        if pattern in word_lower:
+            return False
+
+    # 3. No vowels at all (except for very short function words)
+    if len(word_lower) > 3:
+        vowels = 'aeiouáéíóú'
+        if not any(v in word_lower for v in vowels):
+            return False
 
     # If no Spanish indicators found but it's a reasonable word, allow it
     # (LLM will do final validation)

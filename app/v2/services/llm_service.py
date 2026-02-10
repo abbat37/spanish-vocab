@@ -47,7 +47,7 @@ class LLMService:
         self.client = OpenAI(api_key=api_key)
         self.model = current_app.config.get('OPENAI_MODEL', 'gpt-4o-mini')
 
-    def process_words_bulk(self, raw_words: List[str]) -> List[Dict]:
+    def process_words_bulk(self, raw_words: List[str]) -> tuple[List[Dict], str]:
         """
         Process multiple Spanish words/phrases with LLM.
 
@@ -55,19 +55,12 @@ class LLMService:
             raw_words: List of Spanish words/phrases (already cleaned)
 
         Returns:
-            List of dicts with structure:
-            [
-                {
-                    'spanish': 'cocinar',
-                    'english': 'to cook',
-                    'word_type': 'verb',
-                    'themes': ['food', 'home']
-                },
-                ...
-            ]
+            Tuple of (processed_words, error_message)
+            - processed_words: List of dicts with spanish, english, word_type, themes
+            - error_message: Empty string if success, error description if failure
         """
         if not raw_words:
-            return []
+            return [], ""
 
         # Build prompt
         prompt = self._build_bulk_processing_prompt(raw_words)
@@ -90,12 +83,30 @@ class LLMService:
             result_text = response.choices[0].message.content
             processed_words = self._parse_llm_response(result_text)
 
-            return processed_words
+            if not processed_words:
+                error_msg = "AI couldn't translate the words. They may not be valid Spanish."
+                return [], error_msg
+
+            return processed_words, ""
 
         except Exception as e:
-            print(f"LLM processing error: {e}")
-            # Fallback: return words with minimal processing
-            return self._fallback_processing(raw_words)
+            error_type = type(e).__name__
+            error_msg = str(e)
+
+            # Provide user-friendly error messages
+            if "rate_limit" in error_msg.lower():
+                friendly_msg = "AI service rate limit reached. Please wait a moment and try again."
+            elif "authentication" in error_msg.lower() or "api_key" in error_msg.lower():
+                friendly_msg = "AI service authentication error. Please contact support."
+            elif "timeout" in error_msg.lower():
+                friendly_msg = "AI service timed out. Please try again with fewer words."
+            elif "connection" in error_msg.lower() or "network" in error_msg.lower():
+                friendly_msg = "Network error connecting to AI service. Please check your connection and try again."
+            else:
+                friendly_msg = f"Translation service error ({error_type}). Please try again."
+
+            print(f"LLM processing error: {error_type} - {error_msg}")
+            return [], friendly_msg
 
     def _build_bulk_processing_prompt(self, words: List[str]) -> str:
         """Build prompt for bulk word processing"""
@@ -208,19 +219,6 @@ Rules:
             word['themes'] = ['other']
 
         return True
-
-    def _fallback_processing(self, raw_words: List[str]) -> List[Dict]:
-        """Fallback if LLM fails - return minimal structure"""
-        return [
-            {
-                'spanish': word,
-                'english': '(translation needed)',
-                'word_type': 'other',
-                'themes': ['other']
-            }
-            for word in raw_words
-        ]
-
 
 # Singleton-like helper function
 def get_llm_service() -> LLMService:

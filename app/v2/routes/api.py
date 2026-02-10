@@ -93,14 +93,21 @@ def process_words():
 
         # Process with LLM
         llm_service = get_llm_service()
-        processed_words = llm_service.process_words_bulk(valid_words)
+        processed_words, llm_error = llm_service.process_words_bulk(valid_words)
+
+        if llm_error:
+            return jsonify({
+                'success': False,
+                'error': llm_error,
+                'errors': validation_errors
+            }), 500
 
         if not processed_words:
             return jsonify({
                 'success': False,
-                'error': 'LLM processing failed',
-                'errors': ['Unable to process words with AI. Please try again.']
-            }), 500
+                'error': 'No words could be processed',
+                'errors': validation_errors
+            }), 400
 
         # Create words in database
         created_words, db_errors, db_stats = WordService.bulk_create_words(
