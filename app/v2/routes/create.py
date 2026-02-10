@@ -10,14 +10,10 @@ from app.v2.services.word_service import WordService
 def register_create_routes(bp):
     """Register create routes"""
 
-    @bp.route('/create', methods=['GET', 'POST'])
+    @bp.route('/create', methods=['GET'])
     @login_required
     def create():
-        """Create/edit words page"""
-
-        if request.method == 'POST':
-            # TODO Phase 5: Handle single word creation
-            return redirect(url_for('v2.create'))
+        """Create/edit words page - bulk AI entry only"""
 
         # Load user's existing words
         words = WordService.get_user_words(current_user.id)

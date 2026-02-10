@@ -17,7 +17,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             <h2 class="text-lg font-semibold text-gray-900">Bulk Entry with AI</h2>
-            <span class="ml-3 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">NEW</span>
+            <span class="ml-6 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">NEW</span>
         </div>
         <p class="text-sm text-gray-700 mb-4">Paste multiple words (one per line or comma-separated) and let AI automatically translate and categorize them!</p>
 
@@ -47,97 +47,61 @@
         <div id="bulk-status" class="mt-4 hidden"></div>
     </div>
 
-    <!-- Add Word Form -->
-    <div class="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Add New Word</h2>
-
-        <form method="POST" class="space-y-4">
-            <!-- Spanish Word -->
-            <div>
-                <label for="spanish" class="block text-sm font-medium text-gray-700 mb-1">
-                    Spanish Word
-                </label>
-                <input type="text" id="spanish" name="spanish" required
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                       placeholder="e.g., cocinar">
-            </div>
-
-            <!-- English Translation -->
-            <div>
-                <label for="english" class="block text-sm font-medium text-gray-700 mb-1">
-                    English Translation
-                </label>
-                <input type="text" id="english" name="english" required
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                       placeholder="e.g., to cook">
-            </div>
-
-            <!-- Word Type -->
-            <div>
-                <label for="word_type" class="block text-sm font-medium text-gray-700 mb-1">
-                    Word Type
-                </label>
-                <select id="word_type" name="word_type" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select type...</option>
-                    <option value="verb">Verb</option>
-                    <option value="noun">Noun</option>
-                    <option value="adj">Adjective</option>
-                    <option value="adverb">Adverb</option>
-                    <option value="phrase">Phrase</option>
-                </select>
-            </div>
-
-            <!-- Theme -->
-            <div>
-                <label for="theme" class="block text-sm font-medium text-gray-700 mb-1">
-                    Theme
-                </label>
-                <select id="theme" name="theme" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select theme...</option>
-                    <option value="cooking">Cooking</option>
-                    <option value="work">Work</option>
-                    <option value="sports">Sports</option>
-                    <option value="restaurant">Restaurant</option>
-                    <option value="travel">Travel</option>
-                    <option value="family">Family</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="pt-2">
-                <button type="submit"
-                        class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 font-medium transition">
-                    Add Word
-                </button>
-            </div>
-        </form>
-    </div>
-
     <!-- Word List -->
     <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Your Words</h2>
 
         {% if words %}
-        <div class="space-y-2">
-            {% for word in words %}
-            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                    <p class="font-medium text-gray-900">{{ word.spanish }}</p>
-                    <p class="text-sm text-gray-600">{{ word.english }}</p>
-                    <div class="mt-1 flex space-x-2">
-                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{{ word.word_type }}</span>
-                        <span class="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">{{ word.theme }}</span>
-                    </div>
-                </div>
-                <div class="flex space-x-2">
-                    <button class="text-blue-600 hover:text-blue-800">Edit</button>
-                    <button class="text-red-600 hover:text-red-800">Delete</button>
-                </div>
-            </div>
-            {% endfor %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spanish</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">English</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Themes</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for word in words %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <p class="font-medium text-gray-900">{{ word.spanish }}</p>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <p class="text-sm text-gray-600">{{ word.english }}</p>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">{{ word.word_type }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex flex-wrap gap-1">
+                                {% for theme in word.themes.split(',') %}
+                                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">{{ theme }}</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <div class="flex space-x-3">
+                                <button class="text-blue-600 hover:text-blue-800 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    Edit
+                                </button>
+                                <button class="text-red-600 hover:text-red-800 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         {% else %}
         <div class="text-center py-12">
@@ -196,7 +160,7 @@ async function processBulkWords() {
                 message += ` (${stats.rejected} invalid word(s) rejected)`;
             }
 
-            showStatus('success', message);
+            showStatus('success', message, true);
 
             // Show errors if any
             if (data.errors && data.errors.length > 0) {
@@ -209,10 +173,8 @@ async function processBulkWords() {
             // Clear textarea on success
             textarea.value = '';
 
-            // Reload page after 2 seconds to show new words
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            // Reload page to show new words
+            window.location.reload();
         } else {
             showStatus('error', data.error || 'Failed to process words');
             if (data.errors && data.errors.length > 0) {
@@ -234,13 +196,24 @@ async function processBulkWords() {
     }
 }
 
-function showStatus(type, message) {
+function showStatus(type, message, showClose = false) {
     const statusDiv = document.getElementById('bulk-status');
     const bgColor = type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800';
 
+    const closeButton = showClose ? `
+        <button onclick="document.getElementById('bulk-status').classList.add('hidden')" class="ml-3 text-${type === 'success' ? 'green' : 'red'}-600 hover:text-${type === 'success' ? 'green' : 'red'}-800">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    ` : '';
+
     statusDiv.innerHTML = `
-        <div class="${bgColor} border rounded-lg px-4 py-3">
-            <p class="font-medium">${message}</p>
+        <div class="${bgColor} border rounded-lg px-4 py-3 flex items-start justify-between">
+            <div class="flex-1">
+                <p class="font-medium">${message}</p>
+            </div>
+            ${closeButton}
         </div>
     `;
     statusDiv.classList.remove('hidden');
