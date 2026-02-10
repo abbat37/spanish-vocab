@@ -1,9 +1,10 @@
 """
-Statistics Service
+Statistics Service (V1)
 Handles user progress statistics and tracking
 """
 from sqlalchemy import func
-from app.models import db, UserSession, WordPractice
+from app.shared.extensions import db
+from app.v1.models import UserSession, WordPractice
 from .session_service import SessionService
 
 

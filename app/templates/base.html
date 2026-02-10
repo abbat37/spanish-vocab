@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Spanish Vocabulary Learning{% endblock %}</title>
+    <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-calm-100 via-calm-50 to-primary-50">
+    <!-- Header (Consistent with V1) -->
+    <header class="bg-calm-50 border-b border-calm-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo and Title (Consistent with V1) -->
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <h1 class="text-xl font-bold text-calm-900 hidden sm:block">Spanish Learner</h1>
+                        {% if request.path.startswith('/v2') %}
+                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded font-semibold">V2 Beta</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Desktop Menu (Consistent with V1) -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <!-- Version Switcher -->
+                    {% if request.path.startswith('/v2') %}
+                    <a href="/v1/" class="px-4 py-2 text-sm font-medium text-calm-600 hover:text-calm-900 hover:bg-calm-100 rounded-lg transition duration-200">
+                        ← Back to V1
+                    </a>
+                    {% else %}
+                    <a href="/v2/" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition duration-200">
+                        Try V2 Beta →
+                    </a>
+                    {% endif %}
+
+                    <!-- Auth Links -->
+                    {% if current_user.is_authenticated %}
+                    <span class="text-sm text-calm-600">{{ current_user.email }}</span>
+                    <a href="{{ url_for('auth.logout') }}" class="px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition duration-200">
+                        Sign Out
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition duration-200">
+                        Login
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile Menu Button (Consistent with V1) -->
+                <button id="mobile-menu-button" type="button" class="md:hidden inline-flex items-center justify-center p-2 rounded-lg text-calm-600 hover:text-calm-900 hover:bg-calm-100 transition duration-200" aria-expanded="false">
+                    <span class="sr-only">Open menu</span>
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu (Consistent with V1) -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-calm-200">
+            <div class="px-4 py-3 space-y-3">
+                {% if current_user.is_authenticated %}
+                <div class="text-sm text-calm-600 pb-2 border-b border-calm-200">{{ current_user.email }}</div>
+                {% endif %}
+
+                <!-- Version Switcher Mobile -->
+                {% if request.path.startswith('/v2') %}
+                <a href="/v1/" class="block px-4 py-2 text-sm font-medium text-calm-600 hover:bg-calm-100 rounded-lg transition duration-200">
+                    ← Back to V1
+                </a>
+                {% else %}
+                <a href="/v2/" class="block px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 rounded-lg shadow-md hover:shadow-lg transition duration-200 text-center">
+                    Try V2 Beta →
+                </a>
+                {% endif %}
+
+                <!-- Auth Links Mobile -->
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition duration-200">
+                    Sign Out
+                </a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="block px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition duration-200">
+                    Login
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Mobile Menu Toggle Script -->
+    <script>
+        document.getElementById('mobile-menu-button')?.addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

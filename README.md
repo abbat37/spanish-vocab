@@ -96,6 +96,7 @@ spanish-vocab-app/
 ├── migrations/                # Database migrations (Flask-Migrate)
 │   └── versions/
 ├── docs/                       # Documentation
+│   ├── DESIGN_SYSTEM.md       # UI consistency & styling guide
 │   ├── TAILWIND_BUILD.md      # Tailwind CSS build guide
 │   └── legacy/                # Legacy migration files
 ├── specs/

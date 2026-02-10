@@ -1,11 +1,12 @@
 """
-Session Management Service
+Session Management Service (V1)
 Handles user session creation and linking to authenticated users
 """
 import uuid
 from flask import session
 from flask_login import current_user
-from app.models import db, UserSession
+from app.shared.extensions import db
+from app.v1.models import UserSession
 
 
 class SessionService:

@@ -192,10 +192,49 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Run deployment validation tests
+      - name: Verify Tailwind config includes all template paths
+        run: |
+          echo "🔍 Checking Tailwind configuration..."
+
+          if ! grep -q "./app/v1/templates" tailwind.config.js; then
+            echo "❌ ERROR: tailwind.config.js missing './app/v1/templates'"
+            echo "V1 CSS classes won't be included in build!"
+            exit 1
+          fi
+
+          if ! grep -q "./app/v2/templates" tailwind.config.js; then
+            echo "❌ ERROR: tailwind.config.js missing './app/v2/templates'"
+            echo "V2 CSS classes won't be included in build!"
+            exit 1
+          fi
+
+          echo "✅ Tailwind config includes all template directories"
+
+      - name: Verify CSS contains custom classes
+        run: |
+          echo "🔍 Validating CSS content..."
+
+          if ! grep -q "calm\|primary" app/static/css/output.css; then
+            echo "❌ ERROR: CSS missing custom color classes (calm/primary)"
+            echo "Tailwind may not be scanning v1 templates!"
+            exit 1
+          fi
+
+          echo "✅ CSS includes custom classes"
+
+      - name: Install Python test dependencies
         run: |
           pip install pytest
-          pytest tests/test_deployment.py -v
+          pip install -r requirements.txt
+
+      - name: Run Phase 1 version management tests
+        run: |
+          echo "🧪 Running Phase 1 tests..."
+          pytest tests/test_phase1_version_management.py -v --tb=short
+
+      - name: Run deployment validation tests
+        run: |
+          pytest tests/test_deployment.py -v --tb=short
 
       - name: Upload CSS artifact
         uses: actions/upload-artifact@v4

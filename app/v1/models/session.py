@@ -1,8 +1,8 @@
 """
-Session and Practice Tracking Models
+Session and Practice Tracking Models (V1)
 """
 from datetime import datetime
-from . import db
+from app.shared.extensions import db
 
 
 class UserSession(db.Model):

@@ -1,11 +1,12 @@
 """
-Authentication Routes
+Authentication Routes (Shared across versions)
 Handles user registration, login, and logout
 """
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import db, User, UserSession
+from app.shared import db, User
+from app.v1.models import UserSession
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -14,7 +15,7 @@ auth_bp = Blueprint('auth', __name__)
 def register():
     """User registration page"""
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('v1_main.index'))
 
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
@@ -57,7 +58,7 @@ def register():
         # Log the user in
         login_user(new_user)
         flash('Account created successfully! Welcome to Spanish Word Learner.', 'success')
-        return redirect(url_for('main.index'))
+        return redirect(url_for('v1_main.index'))
 
     return render_template('register.html')
 
@@ -66,7 +67,7 @@ def register():
 def login():
     """User login page"""
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('v1_main.index'))
 
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
@@ -91,7 +92,7 @@ def login():
 
             # Redirect to next page or index
             next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('main.index'))
+            return redirect(next_page) if next_page else redirect(url_for('v1_main.index'))
         else:
             flash('Invalid email or password.', 'error')
             return render_template('login.html')

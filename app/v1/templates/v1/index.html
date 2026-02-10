@@ -23,6 +23,9 @@
 
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center space-x-4">
+                    <a href="/v2/" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition duration-200">
+                        Try V2 Beta →
+                    </a>
                     <span class="text-sm text-calm-600">{{ current_user.email }}</span>
                     <a href="{{ url_for('auth.logout') }}" class="px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition duration-200">
                         Sign Out
@@ -43,6 +46,9 @@
         <div id="mobile-menu" class="hidden md:hidden border-t border-calm-200">
             <div class="px-4 py-3 space-y-3">
                 <div class="text-sm text-calm-600 pb-2 border-b border-calm-200">{{ current_user.email }}</div>
+                <a href="/v2/" class="block px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 rounded-lg shadow-md hover:shadow-lg transition duration-200 text-center">
+                    Try V2 Beta →
+                </a>
                 <a href="{{ url_for('auth.logout') }}" class="block px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition duration-200">
                     Sign Out
                 </a>
@@ -118,7 +124,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <!-- Sidebar: Form -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-sm border border-calm-200 p-6 lg:sticky lg:top-24">
+                <div class="bg-white rounded-xl shadow-sm border border-calm-200 p-6 lg:sticky lg:top-24" style="min-height: 360px;">
                     <h3 class="text-lg font-semibold text-calm-900 mb-4">Generate Practice</h3>
                     <form method="POST" class="space-y-4" id="generate-form">
                         <!-- Theme Select -->
@@ -217,12 +223,12 @@
                     <p class="text-calm-500 text-sm mt-2">Try selecting a different theme or word type.</p>
                 </div>
                 {% else %}
-                <div class="bg-white rounded-xl shadow-sm border border-calm-200 p-12 text-center">
-                    <svg class="w-16 h-16 text-primary-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-white rounded-xl shadow-sm border border-calm-200 p-6 flex flex-col items-center justify-center" style="min-height: 360px;">
+                    <svg class="w-10 h-10 text-primary-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                     </svg>
-                    <p class="text-calm-600 text-lg">Select a theme and word type to begin</p>
-                    <p class="text-calm-500 text-sm mt-2">Practice Spanish vocabulary with contextual sentences</p>
+                    <p class="text-calm-600">Select a theme and word type to begin</p>
+                    <p class="text-calm-500 text-sm mt-1">Practice Spanish vocabulary with contextual sentences</p>
                 </div>
                 {% endif %}
             </div>

@@ -1,9 +1,9 @@
 """
-Sentence Generation Service
+Sentence Generation Service (V1)
 Handles generating practice sentences with vocabulary words
 """
 import random
-from app.models import VocabularyWord, SentenceTemplate, UserSession, WordPractice
+from app.v1.models import VocabularyWord, SentenceTemplate, UserSession, WordPractice
 from .session_service import SessionService
 
 

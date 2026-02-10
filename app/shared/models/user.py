@@ -1,10 +1,10 @@
 """
-User Model
+User Model (Shared across versions)
 """
 from flask_login import UserMixin
 from datetime import datetime
 import bcrypt
-from . import db
+from app.shared.extensions import db
 
 
 class User(UserMixin, db.Model):

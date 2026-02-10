@@ -1,15 +1,16 @@
 """
-API Routes
+V1 API Routes
 RESTful API endpoints for AJAX operations
 """
 from flask import Blueprint, request, jsonify
 from flask_login import login_required
 from marshmallow import ValidationError
-from app.models import db, WordPractice
-from app.services import SessionService, StatsService
-from app.utils import MarkLearnedSchema
+from app.shared.extensions import db
+from app.v1.models import WordPractice
+from app.v1.services import SessionService, StatsService
+from app.v1.utils.validators import MarkLearnedSchema
 
-api_bp = Blueprint('api', __name__, url_prefix='/api')
+api_bp = Blueprint('v1_api', __name__)
 
 
 @api_bp.route('/mark-learned', methods=['POST'])

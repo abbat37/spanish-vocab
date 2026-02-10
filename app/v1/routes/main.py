@@ -1,12 +1,12 @@
 """
-Main Application Routes
+V1 Main Application Routes
 Handles the main vocabulary practice interface
 """
 from flask import Blueprint, render_template, request
 from flask_login import login_required
-from app.services import SessionService, StatsService, SentenceService
+from app.v1.services import SessionService, StatsService, SentenceService
 
-main_bp = Blueprint('main', __name__)
+main_bp = Blueprint('v1_main', __name__, template_folder='../templates')
 
 
 @main_bp.route('/', methods=['GET', 'POST'])
@@ -58,7 +58,7 @@ def index():
                         stats['by_theme'][theme_name] = 0
 
     return render_template(
-        'index.html',
+        'v1/index.html',
         sentences=sentences,
         theme=theme,
         word_type=word_type,

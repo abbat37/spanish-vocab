@@ -1,23 +1,19 @@
 """
 Application Factory
-Creates and configures the Flask application
+Creates and configures the Flask application with version support
 """
 import os
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
-from flask import Flask
-from flask_login import LoginManager
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from flask_migrate import Migrate
+from flask import Flask, redirect, url_for
 
 from app.config import config
-from app.models import db, User
+from app.shared import db, login_manager, limiter, migrate, User
 
 
 def create_app(config_name=None):
     """
-    Application factory pattern.
+    Application factory pattern with version support.
 
     Args:
         config_name: Configuration to use (development, production, testing)
@@ -33,7 +29,20 @@ def create_app(config_name=None):
 
     # Initialize extensions
     db.init_app(app)
-    migrate = Migrate(app, db)
+    migrate.init_app(app, db)
+
+    # Initialize Flask-Login
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        """Load user by ID for Flask-Login"""
+        return User.query.get(int(user_id))
+
+    # Initialize rate limiting
+    limiter.init_app(app)
+    limiter._storage_uri = app.config.get('RATELIMIT_STORAGE_URL')
 
     # Initialize Sentry for error tracking
     if app.config.get('SENTRY_DSN'):
@@ -44,33 +53,29 @@ def create_app(config_name=None):
             traces_sample_rate=0.1
         )
 
-    # Initialize Flask-Login
-    login_manager = LoginManager()
-    login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'
+    # ROOT URL: Redirect to /v1/ (default version)
+    @app.route('/')
+    def root_redirect():
+        """Redirect root URL to v1"""
+        return redirect(url_for('v1_main.index'))
 
-    @login_manager.user_loader
-    def load_user(user_id):
-        """Load user by ID for Flask-Login"""
-        return User.query.get(int(user_id))
-
-    # Initialize rate limiting
-    limiter = Limiter(
-        app=app,
-        key_func=get_remote_address,
-        default_limits=["200 per day", "50 per hour"],
-        storage_uri=app.config.get('RATELIMIT_STORAGE_URL')
-    )
-
-    # Apply rate limiting to API blueprint
-    from app.routes.api import api_bp
-    limiter.limit("10 per minute")(api_bp)
-
-    # Register blueprints
-    from app.routes import auth_bp, main_bp, api_bp
+    # Register SHARED routes (no prefix)
+    from app.routes import auth_bp
     app.register_blueprint(auth_bp)
-    app.register_blueprint(main_bp)
-    app.register_blueprint(api_bp)
+
+    # Register V1 blueprints with /v1 prefix
+    from app.v1 import create_v1_blueprint
+    v1_blueprints = create_v1_blueprint()
+    app.register_blueprint(v1_blueprints['main'], url_prefix='/v1')
+    app.register_blueprint(v1_blueprints['api'], url_prefix='/v1')
+
+    # Apply rate limiting to v1 API
+    limiter.limit("10 per minute")(v1_blueprints['api'])
+
+    # Register V2 blueprint with /v2 prefix (placeholder)
+    from app.v2 import create_v2_blueprint
+    v2_bp = create_v2_blueprint()
+    app.register_blueprint(v2_bp, url_prefix='/v2')
 
     # Create database tables
     with app.app_context():

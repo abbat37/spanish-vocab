@@ -1,5 +1,5 @@
 """
-Business Logic Services
+V1 Services
 """
 from .session_service import SessionService
 from .stats_service import StatsService

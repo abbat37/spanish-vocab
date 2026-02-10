@@ -1,7 +1,7 @@
 """
-Vocabulary Models
+Vocabulary Models (V1)
 """
-from . import db
+from app.shared.extensions import db
 
 
 class VocabularyWord(db.Model):
