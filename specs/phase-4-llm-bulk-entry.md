@@ -174,7 +174,16 @@ class LLMService:
     ]
 
     # Word type options
-    WORD_TYPES = ['verb', 'noun', 'adj', 'adverb', 'phrase']
+    WORD_TYPES = [
+        'verb',           # Action words (cocinar, hablar)
+        'noun',           # Things/people (casa, amigo)
+        'adjective',      # Descriptive (frío, grande)
+        'adverb',         # Manner/degree (rápidamente, muy)
+        'phrase',         # Multi-word expressions (por cierto, que va)
+        'function_word',  # Grammar words (el, en, y, pero, de)
+        'number',         # Numbers (primero, cinco, cien)
+        'other'           # Everything else
+    ]
 
     def __init__(self):
         """Initialize Portkey client"""

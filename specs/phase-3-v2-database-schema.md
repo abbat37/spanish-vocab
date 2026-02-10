@@ -135,7 +135,7 @@ class V2Word(db.Model):
         db.String(20),
         nullable=False,
         index=True
-    )  # verb, noun, adj, adverb, phrase
+    )  # verb, noun, adjective, adverb, phrase, function_word, number, other
 
     # Themes (comma-separated for simplicity in Phase 3)
     # Example: "weather,emotions" or "food,home,work"
