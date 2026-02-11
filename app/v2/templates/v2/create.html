@@ -172,7 +172,7 @@ async function processBulkWords() {
 
         if (data.success) {
             const stats = data.stats;
-            let message = `✅ Successfully processed ${stats.created} word(s)!`;
+            let message = `Successfully processed ${stats.created} word(s)!`;
 
             if (stats.duplicates > 0) {
                 message += ` (${stats.duplicates} duplicate(s) skipped)`;
@@ -213,10 +213,24 @@ async function processBulkWords() {
 
 function showStatus(type, message, showClose = false) {
     const statusDiv = document.getElementById('bulk-status');
-    const bgColor = type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800';
+    const isSuccess = type === 'success';
+    const bgColor = isSuccess ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
+    const textColor = isSuccess ? 'text-green-800' : 'text-red-800';
+    const iconColor = isSuccess ? 'text-green-600' : 'text-red-600';
+    const buttonColor = isSuccess ? 'text-green-600 hover:text-green-800' : 'text-red-600 hover:text-red-800';
+
+    const icon = isSuccess ? `
+        <svg class="w-5 h-5 ${iconColor} flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+    ` : `
+        <svg class="w-5 h-5 ${iconColor} flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+    `;
 
     const closeButton = showClose ? `
-        <button onclick="document.getElementById('bulk-status').classList.add('hidden')" class="ml-3 text-${type === 'success' ? 'green' : 'red'}-600 hover:text-${type === 'success' ? 'green' : 'red'}-800">
+        <button onclick="document.getElementById('bulk-status').classList.add('hidden')" class="${buttonColor} ml-4 flex-shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -224,8 +238,9 @@ function showStatus(type, message, showClose = false) {
     ` : '';
 
     statusDiv.innerHTML = `
-        <div class="${bgColor} border rounded-lg px-4 py-3 flex items-start justify-between">
-            <div class="flex-1">
+        <div class="${bgColor} border rounded-lg px-4 py-3 flex items-start">
+            ${icon}
+            <div class="flex-1 ml-3 ${textColor}">
                 <p class="font-medium">${message}</p>
             </div>
             ${closeButton}

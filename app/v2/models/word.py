@@ -36,6 +36,9 @@ class V2Word(db.Model):
         index=True
     )  # verb, noun, adjective, adverb, phrase, function_word, number, other
 
+    # TODO: Add gender property for nouns/adjectives (masculine, feminine, both)
+    # This will be used alongside word normalization (masculine singular forms)
+
     # Themes (comma-separated for simplicity in Phase 3)
     # Example: "weather,emotions" or "food,home,work"
     themes = db.Column(db.String(200), nullable=False, index=True)

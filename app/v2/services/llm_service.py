@@ -71,10 +71,16 @@ REJECT if:
 - Gibberish or typos (e.g., "helloo", "asdfgh")
 - Numbers only (e.g., "123")
 
-ACCEPT if:
+ACCEPT AND NORMALIZE:
 - Valid Spanish word (e.g., "hola", "cocinar", "frío")
 - Spanish phrase (e.g., "por cierto", "de nada")
 - Gender variations with slash (e.g., "lejo/a", "amigo/a")
+
+IMPORTANT NORMALIZATION RULES:
+1. For VERBS not in infinitive form (e.g., "comí", "hablando"), return the INFINITIVE form only (e.g., "comer", "hablar")
+2. For NOUNS/ADJECTIVES with gender/number variations, return MASCULINE SINGULAR form only (e.g., "gato" not "gata", "bonito" not "bonita")
+3. Keep phrases and function words as-is
+4. Preserve accents and special characters
 
 Words to validate:
 {chr(10).join(f"{i+1}. {word}" for i, word in enumerate(words))}
@@ -82,10 +88,14 @@ Words to validate:
 Respond ONLY with JSON (no markdown, no explanations):
 {{
     "results": [
-        {{"word": "original word", "valid": true/false, "reason": "brief reason if invalid"}},
+        {{"word": "normalized word", "original": "original input", "valid": true/false, "reason": "brief reason if invalid", "normalized": true/false}},
         ...
     ]
-}}"""
+}}
+
+If valid=true and the word was normalized, set normalized=true and "word" should be the corrected form.
+If valid=true and no changes needed, set normalized=false and "word" equals "original".
+If valid=false, provide reason."""
 
         try:
             response = self.client.chat.completions.create(
@@ -106,13 +116,17 @@ Respond ONLY with JSON (no markdown, no explanations):
 
             for result in result_data.get('results', []):
                 word = result.get('word', '')
+                original = result.get('original', word)
                 is_valid = result.get('valid', False)
+                was_normalized = result.get('normalized', False)
                 reason = result.get('reason', 'Invalid Spanish word')
 
                 if is_valid:
+                    # Use the normalized word (infinitive or masculine singular)
                     valid_words.append(word)
                 else:
-                    rejected_words.append((word, reason))
+                    # Reject with original word and reason
+                    rejected_words.append((original, reason))
 
             return valid_words, rejected_words
 
