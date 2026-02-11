@@ -115,22 +115,21 @@
 document.addEventListener('DOMContentLoaded', function() {
     const successMessage = sessionStorage.getItem('successMessage');
     if (successMessage) {
-        const statusDiv = document.getElementById('bulk-status');
-        showStatus('success', successMessage, true);
-
-        // Check for errors to append
+        // Check for errors to display
+        let successDetails = '';
         const errorsJson = sessionStorage.getItem('successErrors');
         if (errorsJson) {
             try {
                 const errors = JSON.parse(errorsJson);
-                const errorHtml = '<div class="mt-2 text-sm"><strong>Notes:</strong><ul class="list-disc ml-5 mt-1">' +
+                successDetails = '<div class="mt-2 text-sm"><strong>Notes:</strong><ul class="list-disc ml-5 mt-1">' +
                     errors.map(err => `<li>${err}</li>`).join('') +
                     '</ul></div>';
-                statusDiv.querySelector('div').innerHTML += errorHtml;
             } catch (e) {
                 console.error('Error parsing errors:', e);
             }
         }
+
+        showStatus('success', successMessage, true, successDetails);
 
         // Clear from sessionStorage
         sessionStorage.removeItem('successMessage');
@@ -191,13 +190,15 @@ async function processBulkWords() {
             textarea.value = '';
             window.location.reload();
         } else {
-            showStatus('error', data.error || 'Failed to process words');
+            // Build error message with details
+            let errorMessage = data.error || 'Failed to process words';
+            let errorDetails = '';
             if (data.errors && data.errors.length > 0) {
-                const errorHtml = '<ul class="list-disc ml-5 mt-2 text-sm">' +
+                errorDetails = '<ul class="list-disc ml-5 mt-2 text-sm">' +
                     data.errors.map(err => `<li>${err}</li>`).join('') +
                     '</ul>';
-                statusDiv.innerHTML += errorHtml;
             }
+            showStatus('error', errorMessage, false, errorDetails);
         }
     } catch (error) {
         console.error('Error:', error);
@@ -211,7 +212,7 @@ async function processBulkWords() {
     }
 }
 
-function showStatus(type, message, showClose = false) {
+function showStatus(type, message, showClose = false, details = '') {
     const statusDiv = document.getElementById('bulk-status');
     const isSuccess = type === 'success';
     const bgColor = isSuccess ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
@@ -242,6 +243,7 @@ function showStatus(type, message, showClose = false) {
             ${icon}
             <div class="flex-1 ml-3 ${textColor}">
                 <p class="font-medium">${message}</p>
+                ${details}
             </div>
             ${closeButton}
         </div>
