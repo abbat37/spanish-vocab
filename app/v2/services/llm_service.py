@@ -47,6 +47,80 @@ class LLMService:
         self.client = OpenAI(api_key=api_key)
         self.model = current_app.config.get('OPENAI_MODEL', 'gpt-4o-mini')
 
+    def validate_spanish_words(self, words: List[str]) -> tuple[List[str], List[tuple[str, str]]]:
+        """
+        Validate if words are actually Spanish using LLM (Layer 2 validation).
+
+        Args:
+            words: List of words that passed deterministic validation
+
+        Returns:
+            Tuple of (valid_words, rejected_words_with_reasons)
+            Example: (['hola', 'cocinar'], [('helloo', 'Not a valid Spanish word'), ('nadar - to swim', 'Mixed language')])
+        """
+        if not words:
+            return [], []
+
+        # Build validation prompt
+        prompt = f"""You are a Spanish language validator. Analyze each word below and determine if it's a VALID Spanish word that should be added to a Spanish vocabulary learning app.
+
+REJECT if:
+- Contains English translation (e.g., "nadar - to swim", "lejo - nearby")
+- Mixed language (Spanish + English in same entry)
+- English word (e.g., "hello", "computer")
+- Gibberish or typos (e.g., "helloo", "asdfgh")
+- Numbers only (e.g., "123")
+
+ACCEPT if:
+- Valid Spanish word (e.g., "hola", "cocinar", "frío")
+- Spanish phrase (e.g., "por cierto", "de nada")
+- Gender variations with slash (e.g., "lejo/a", "amigo/a")
+
+Words to validate:
+{chr(10).join(f"{i+1}. {word}" for i, word in enumerate(words))}
+
+Respond ONLY with JSON (no markdown, no explanations):
+{{
+    "results": [
+        {{"word": "original word", "valid": true/false, "reason": "brief reason if invalid"}},
+        ...
+    ]
+}}"""
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You are a Spanish language expert. Respond only with valid JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.2,
+                max_tokens=2000
+            )
+
+            result_text = response.choices[0].message.content.strip()
+            result_data = self._parse_llm_response(result_text)
+
+            valid_words = []
+            rejected_words = []
+
+            for result in result_data.get('results', []):
+                word = result.get('word', '')
+                is_valid = result.get('valid', False)
+                reason = result.get('reason', 'Invalid Spanish word')
+
+                if is_valid:
+                    valid_words.append(word)
+                else:
+                    rejected_words.append((word, reason))
+
+            return valid_words, rejected_words
+
+        except Exception as e:
+            print(f"⚠️  LLM validation failed: {e}")
+            # On API failure, assume all words are valid (fail open)
+            return words, []
+
     def process_words_bulk(self, raw_words: List[str]) -> tuple[List[Dict], str]:
         """
         Process multiple Spanish words/phrases with LLM.
@@ -143,8 +217,14 @@ Rules:
 
         return prompt
 
-    def _parse_llm_response(self, response_text: str) -> List[Dict]:
-        """Parse LLM JSON response"""
+    def _parse_llm_response(self, response_text: str):
+        """
+        Parse LLM JSON response - handles both list and dict formats
+
+        Returns:
+            - List[Dict] for word processing responses
+            - Dict for validation responses
+        """
         try:
             # Remove markdown code blocks if present
             clean_text = response_text.strip()
@@ -159,20 +239,23 @@ Rules:
                     clean_text = clean_text.strip()
 
             # Parse JSON
-            words = json.loads(clean_text)
+            data = json.loads(clean_text)
 
-            # Validate structure
-            validated = []
-            for word in words:
-                if self._validate_word_structure(word):
-                    validated.append(word)
+            # If it's a list (word processing response), validate each word
+            if isinstance(data, list):
+                validated = []
+                for word in data:
+                    if self._validate_word_structure(word):
+                        validated.append(word)
+                return validated
 
-            return validated
+            # If it's a dict (validation response), return as-is
+            return data
 
         except json.JSONDecodeError as e:
             print(f"JSON parse error: {e}")
             print(f"Response text: {response_text[:200]}")
-            return []
+            return [] if '[' in response_text else {}
 
     def _validate_word_structure(self, word: Dict) -> bool:
         """

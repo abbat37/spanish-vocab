@@ -91,9 +91,24 @@ def process_words():
                 'errors': validation_errors
             }), 400
 
-        # Process with LLM
+        # Layer 2: LLM validation for complex cases (mixed language, gibberish, English)
         llm_service = get_llm_service()
-        processed_words, llm_error = llm_service.process_words_bulk(valid_words)
+        validated_words, llm_rejected = llm_service.validate_spanish_words(valid_words)
+
+        # Add LLM rejection reasons to errors
+        for word, reason in llm_rejected:
+            rejected_words.append(word)
+            validation_errors.append(f"'{word}': {reason}")
+
+        if not validated_words:
+            return jsonify({
+                'success': False,
+                'error': 'No valid Spanish words found after validation',
+                'errors': validation_errors
+            }), 400
+
+        # Process with LLM (translation and categorization)
+        processed_words, llm_error = llm_service.process_words_bulk(validated_words)
 
         if llm_error:
             return jsonify({

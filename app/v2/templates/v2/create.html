@@ -111,6 +111,33 @@
 
 {% block v2_scripts %}
 <script>
+// On page load, check if there's a success message to display
+document.addEventListener('DOMContentLoaded', function() {
+    const successMessage = sessionStorage.getItem('successMessage');
+    if (successMessage) {
+        const statusDiv = document.getElementById('bulk-status');
+        showStatus('success', successMessage, true);
+
+        // Check for errors to append
+        const errorsJson = sessionStorage.getItem('successErrors');
+        if (errorsJson) {
+            try {
+                const errors = JSON.parse(errorsJson);
+                const errorHtml = '<div class="mt-2 text-sm"><strong>Notes:</strong><ul class="list-disc ml-5 mt-1">' +
+                    errors.map(err => `<li>${err}</li>`).join('') +
+                    '</ul></div>';
+                statusDiv.querySelector('div').innerHTML += errorHtml;
+            } catch (e) {
+                console.error('Error parsing errors:', e);
+            }
+        }
+
+        // Clear from sessionStorage
+        sessionStorage.removeItem('successMessage');
+        sessionStorage.removeItem('successErrors');
+    }
+});
+
 async function processBulkWords() {
     const textarea = document.getElementById('bulk-input');
     const btn = document.getElementById('process-btn');
@@ -154,20 +181,14 @@ async function processBulkWords() {
                 message += ` (${stats.rejected} invalid word(s) rejected)`;
             }
 
-            showStatus('success', message, true);
-
-            // Show errors if any
+            // Store success message and errors in sessionStorage to show after reload
+            sessionStorage.setItem('successMessage', message);
             if (data.errors && data.errors.length > 0) {
-                const errorHtml = '<div class="mt-2 text-sm"><strong>Notes:</strong><ul class="list-disc ml-5 mt-1">' +
-                    data.errors.map(err => `<li>${err}</li>`).join('') +
-                    '</ul></div>';
-                statusDiv.innerHTML += errorHtml;
+                sessionStorage.setItem('successErrors', JSON.stringify(data.errors));
             }
 
-            // Clear textarea on success
+            // Clear textarea and reload page to show new words
             textarea.value = '';
-
-            // Reload page to show new words
             window.location.reload();
         } else {
             showStatus('error', data.error || 'Failed to process words');
