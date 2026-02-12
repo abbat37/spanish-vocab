@@ -4,12 +4,46 @@
 
 {% block v2_content %}
 <div class="max-w-3xl mx-auto">
-    <!-- Page Header -->
-    <div class="mb-6 text-center">
-        <h1 class="text-2xl font-bold text-gray-900">Study Flashcards</h1>
-        <p class="mt-1 text-gray-600">Learn vocabulary with AI-generated examples</p>
+    <!-- Filter Bar -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <h3 class="text-sm font-medium text-gray-700 mb-3">Filter Study Words</h3>
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Theme Filter -->
+            <select name="theme" onchange="this.form.submit()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                <option value="">All Themes</option>
+                <option value="weather" {% if filters.theme == 'weather' %}selected{% endif %}>Weather</option>
+                <option value="food" {% if filters.theme == 'food' %}selected{% endif %}>Food</option>
+                <option value="work" {% if filters.theme == 'work' %}selected{% endif %}>Work</option>
+                <option value="travel" {% if filters.theme == 'travel' %}selected{% endif %}>Travel</option>
+                <option value="family" {% if filters.theme == 'family' %}selected{% endif %}>Family</option>
+                <option value="emotions" {% if filters.theme == 'emotions' %}selected{% endif %}>Emotions</option>
+                <option value="sports" {% if filters.theme == 'sports' %}selected{% endif %}>Sports</option>
+                <option value="home" {% if filters.theme == 'home' %}selected{% endif %}>Home</option>
+                <option value="health" {% if filters.theme == 'health' %}selected{% endif %}>Health</option>
+                <option value="other" {% if filters.theme == 'other' %}selected{% endif %}>Other</option>
+            </select>
+
+            <!-- Type Filter -->
+            <select name="word_type" onchange="this.form.submit()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                <option value="">All Types</option>
+                <option value="verb" {% if filters.word_type == 'verb' %}selected{% endif %}>Verbs</option>
+                <option value="noun" {% if filters.word_type == 'noun' %}selected{% endif %}>Nouns</option>
+                <option value="adjective" {% if filters.word_type == 'adjective' %}selected{% endif %}>Adjectives</option>
+                <option value="adverb" {% if filters.word_type == 'adverb' %}selected{% endif %}>Adverbs</option>
+                <option value="phrase" {% if filters.word_type == 'phrase' %}selected{% endif %}>Phrases</option>
+            </select>
+
+            <!-- Clear Filters Button -->
+            <a href="{{ url_for('v2.study') }}"
+               class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-center transition">
+                Clear Filters
+            </a>
+        </form>
     </div>
 
+    {% if word %}
     <!-- Flashcard -->
     <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
         <!-- Word Header -->
@@ -17,50 +51,147 @@
             <p class="text-4xl font-bold text-gray-900 mb-2">{{ word.spanish }}</p>
             <p class="text-xl text-gray-600">{{ word.english }}</p>
             <div class="mt-3 flex justify-center space-x-2">
-                <span class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{{ word.word_type }}</span>
-                <span class="text-sm bg-gray-100 text-gray-800 px-3 py-1 rounded-full">{{ word.theme }}</span>
+                <span class="text-sm bg-primary-100 text-primary-800 px-3 py-1 rounded-full">{{ word.word_type.replace('_', ' ') }}</span>
+                {% for theme in word.themes.split(',') %}
+                <span class="text-sm bg-gray-100 text-gray-800 px-3 py-1 rounded-full">{{ theme }}</span>
+                {% endfor %}
             </div>
         </div>
 
         <!-- Divider -->
         <div class="border-t border-gray-200 my-6"></div>
 
-        <!-- Example Sentences -->
-        <div class="space-y-4">
-            <h3 class="text-lg font-semibold text-gray-900">Example Sentences:</h3>
-            {% for example in word.examples %}
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p class="text-gray-800">{{ example }}</p>
+        <!-- Example Sentences Section -->
+        <div id="examples-section">
+            {% if has_examples %}
+            <!-- Examples List -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-gray-900">Example Sentences:</h3>
+                {% for example in examples %}
+                <div class="bg-primary-50 border border-primary-200 rounded-lg p-4">
+                    <p class="text-gray-800 mb-1">{{ example.spanish_sentence }}</p>
+                    <p class="text-sm text-gray-600 italic">{{ example.english_translation }}</p>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
-
-        <!-- Regenerate Button -->
-        <div class="mt-6 text-center">
-            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                🔄 Regenerate Examples
-            </button>
+            {% else %}
+            <!-- Generate Button -->
+            <div class="text-center py-8">
+                <p class="text-gray-600 mb-4">No examples yet for this word</p>
+                <button id="generate-btn" onclick="generateExamples({{ word.id }})"
+                        class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
+                    Generate Examples with AI
+                </button>
+                <div id="loading" class="hidden mt-4">
+                    <svg class="animate-spin h-8 w-8 mx-auto text-primary-600" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-sm text-gray-600 mt-2">Generating examples...</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 
     <!-- Action Buttons -->
     <div class="flex justify-between items-center">
-        <button class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
-            ← Previous
-        </button>
+        <a href="{{ url_for('v2.study', theme=filters.theme, word_type=filters.word_type) }}"
+           class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
+            Next Word →
+        </a>
 
-        <button class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition">
+        <button onclick="markLearned({{ word.id }})"
+                class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition">
             ✓ Mark as Learned
         </button>
-
-        <button class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition">
-            Next →
-        </button>
     </div>
 
-    <!-- Progress Indicator -->
-    <div class="mt-6 text-center text-sm text-gray-600">
-        <p>Word 1 of X | X words remaining</p>
+    {% else %}
+    <!-- Empty State -->
+    <div class="bg-white rounded-lg shadow-lg p-12 text-center">
+        <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">No words to study!</h3>
+        <p class="text-gray-600 mb-6">
+            {% if filters.theme or filters.word_type %}
+            No unlearned words match your filters. Try clearing filters or adding more words.
+            {% else %}
+            You haven't added any words yet, or you've learned them all!
+            {% endif %}
+        </p>
+        <div class="space-x-4">
+            <a href="{{ url_for('v2.create') }}"
+               class="inline-block px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
+                Add Words
+            </a>
+            {% if filters.theme or filters.word_type %}
+            <a href="{{ url_for('v2.study') }}"
+               class="inline-block px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
+                Clear Filters
+            </a>
+            {% endif %}
+        </div>
     </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block v2_scripts %}
+<script>
+async function generateExamples(wordId) {
+    const btn = document.getElementById('generate-btn');
+    const loading = document.getElementById('loading');
+
+    btn.disabled = true;
+    btn.classList.add('hidden');
+    loading.classList.remove('hidden');
+
+    try {
+        const response = await fetch(`/v2/api/study/generate-examples/${wordId}`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Reload to show examples
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.error);
+            btn.disabled = false;
+            btn.classList.remove('hidden');
+            loading.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to generate examples. Please try again.');
+        btn.disabled = false;
+        btn.classList.remove('hidden');
+        loading.classList.add('hidden');
+    }
+}
+
+async function markLearned(wordId) {
+    try {
+        const response = await fetch(`/v2/api/study/mark-learned/${wordId}`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Show success message and load next word
+            alert('Word marked as learned!');
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to mark word as learned. Please try again.');
+    }
+}
+</script>
 {% endblock %}

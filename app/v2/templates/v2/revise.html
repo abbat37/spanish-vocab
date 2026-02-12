@@ -4,21 +4,52 @@
 
 {% block v2_content %}
 <div class="max-w-3xl mx-auto">
-    <!-- Page Header -->
-    <div class="mb-6 text-center">
-        <h1 class="text-2xl font-bold text-gray-900">Practice Writing</h1>
-        <p class="mt-1 text-gray-600">Write sentences using your learned words</p>
+    <!-- Filter Bar (same as Study page) -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <h3 class="text-sm font-medium text-gray-700 mb-3">Filter Practice Words</h3>
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <select name="theme" onchange="this.form.submit()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                <option value="">All Themes</option>
+                <option value="weather" {% if filters.theme == 'weather' %}selected{% endif %}>Weather</option>
+                <option value="food" {% if filters.theme == 'food' %}selected{% endif %}>Food</option>
+                <option value="work" {% if filters.theme == 'work' %}selected{% endif %}>Work</option>
+                <option value="travel" {% if filters.theme == 'travel' %}selected{% endif %}>Travel</option>
+                <option value="family" {% if filters.theme == 'family' %}selected{% endif %}>Family</option>
+                <option value="emotions" {% if filters.theme == 'emotions' %}selected{% endif %}>Emotions</option>
+                <option value="sports" {% if filters.theme == 'sports' %}selected{% endif %}>Sports</option>
+                <option value="home" {% if filters.theme == 'home' %}selected{% endif %}>Home</option>
+                <option value="health" {% if filters.theme == 'health' %}selected{% endif %}>Health</option>
+                <option value="other" {% if filters.theme == 'other' %}selected{% endif %}>Other</option>
+            </select>
+
+            <select name="word_type" onchange="this.form.submit()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                <option value="">All Types</option>
+                <option value="verb" {% if filters.word_type == 'verb' %}selected{% endif %}>Verbs</option>
+                <option value="noun" {% if filters.word_type == 'noun' %}selected{% endif %}>Nouns</option>
+                <option value="adjective" {% if filters.word_type == 'adjective' %}selected{% endif %}>Adjectives</option>
+                <option value="adverb" {% if filters.word_type == 'adverb' %}selected{% endif %}>Adverbs</option>
+                <option value="phrase" {% if filters.word_type == 'phrase' %}selected{% endif %}>Phrases</option>
+            </select>
+
+            <a href="{{ url_for('v2.revise') }}"
+               class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-center transition">
+                Clear Filters
+            </a>
+        </form>
     </div>
 
+    {% if word %}
     <!-- Practice Card -->
     <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
         <!-- Practice Word -->
         <div class="text-center mb-6">
             <p class="text-sm text-gray-500 mb-2">Write a sentence using:</p>
             <p class="text-3xl font-bold text-gray-900 mb-1">{{ word.spanish }}</p>
-            <p class="text-lg text-gray-600">({{ word.english }})</p>
+            <p id="word-translation" class="text-lg text-gray-600 hidden">({{ word.english }})</p>
             <div class="mt-3">
-                <span class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{{ word.word_type }}</span>
+                <span class="text-sm bg-primary-100 text-primary-800 px-3 py-1 rounded-full">{{ word.word_type.replace('_', ' ') }}</span>
             </div>
         </div>
 
@@ -31,92 +62,222 @@
                 Your Spanish Sentence:
             </label>
             <textarea id="sentence" name="sentence" rows="4"
-                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-                      placeholder="Write your sentence here..."></textarea>
+                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-lg"
+                      placeholder="Escribe tu oración aquí..."></textarea>
         </div>
 
         <!-- Action Buttons -->
         <div class="flex justify-between">
-            <button id="tipButton" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
+            <button id="tip-button" onclick="toggleTip()"
+                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
                 💡 Show Translation
             </button>
-            <button id="submitButton" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition">
+            <button id="submit-button" onclick="submitPractice()"
+                    class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
                 Check Answer
             </button>
         </div>
     </div>
 
     <!-- Feedback Section (hidden by default) -->
-    <div id="feedbackSection" class="bg-white rounded-lg shadow-lg p-8 mb-6 hidden">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">AI Feedback:</h3>
+    <div id="feedback-section" class="bg-white rounded-lg shadow-lg p-8 mb-6 hidden">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">AI Feedback</h3>
 
         <!-- Correctness Indicator -->
-        <div id="correctnessIndicator" class="mb-4">
-            <!-- Will be populated by JS -->
+        <div id="correctness" class="mb-4">
+            <!-- Populated by JS -->
         </div>
 
         <!-- Feedback Text -->
-        <div id="feedbackText" class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-            <!-- Will be populated by JS -->
+        <div id="feedback-text" class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+            <!-- Populated by JS -->
+        </div>
+
+        <!-- Corrections -->
+        <div id="corrections" class="mb-4">
+            <!-- Populated by JS -->
         </div>
 
         <!-- Suggestions -->
         <div id="suggestions" class="mb-4">
-            <!-- Will be populated by JS -->
+            <!-- Populated by JS -->
+        </div>
+
+        <!-- Native Tip -->
+        <div id="native-tip" class="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-4">
+            <!-- Populated by JS -->
         </div>
 
         <!-- Next Word Button -->
         <div class="text-center">
-            <button class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition">
+            <a href="{{ url_for('v2.revise', theme=filters.theme, word_type=filters.word_type) }}"
+               class="inline-block px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
                 Next Word →
-            </button>
+            </a>
         </div>
     </div>
 
-    <!-- Tip Section (hidden by default) -->
-    <div id="tipSection" class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6 hidden">
-        <p class="text-sm font-medium text-gray-700 mb-2">Translation Tip:</p>
-        <p class="text-gray-800">{{ word.english }}</p>
+    {% else %}
+    <!-- Empty State -->
+    <div class="bg-white rounded-lg shadow-lg p-12 text-center">
+        <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">No words to practice!</h3>
+        <p class="text-gray-600 mb-6">
+            {% if filters.theme or filters.word_type %}
+            No learned words match your filters. Try clearing filters.
+            {% else %}
+            You need to mark some words as "learned" in the Study page first.
+            {% endif %}
+        </p>
+        <div class="space-x-4">
+            <a href="{{ url_for('v2.study') }}"
+               class="inline-block px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
+                Go to Study
+            </a>
+            {% if filters.theme or filters.word_type %}
+            <a href="{{ url_for('v2.revise') }}"
+               class="inline-block px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
+                Clear Filters
+            </a>
+            {% endif %}
+        </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block v2_scripts %}
 <script>
-    // Simple JavaScript for Phase 2 (will enhance in Phase 5)
-    const submitButton = document.getElementById('submitButton');
-    const tipButton = document.getElementById('tipButton');
-    const feedbackSection = document.getElementById('feedbackSection');
-    const tipSection = document.getElementById('tipSection');
-    const sentenceInput = document.getElementById('sentence');
+const wordId = {{ word.id if word else 'null' }};
+const sentenceInput = document.getElementById('sentence');
+const submitButton = document.getElementById('submit-button');
+const feedbackSection = document.getElementById('feedback-section');
 
-    tipButton.addEventListener('click', () => {
-        tipSection.classList.toggle('hidden');
-    });
+function toggleTip() {
+    const translation = document.getElementById('word-translation');
+    translation.classList.toggle('hidden');
+}
 
-    submitButton.addEventListener('click', async () => {
-        const sentence = sentenceInput.value.trim();
+async function submitPractice() {
+    const sentence = sentenceInput.value.trim();
 
-        if (!sentence) {
-            alert('Please write a sentence first!');
-            return;
+    if (!sentence) {
+        alert('Please write a sentence first!');
+        return;
+    }
+
+    // Show loading state
+    submitButton.disabled = true;
+    submitButton.textContent = 'Analyzing...';
+
+    try {
+        const response = await fetch('/v2/api/revise/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                word_id: wordId,
+                sentence: sentence
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            displayFeedback(data.feedback);
+        } else {
+            alert('Error: ' + data.error);
+            submitButton.disabled = false;
+            submitButton.textContent = 'Check Answer';
         }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to analyze sentence. Please try again.');
+        submitButton.disabled = false;
+        submitButton.textContent = 'Check Answer';
+    }
+}
 
-        // TODO Phase 4: Send to backend for AI feedback
-        // For now, show placeholder feedback
-        document.getElementById('correctnessIndicator').innerHTML = `
-            <div class="flex items-center text-green-600">
-                <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span class="font-semibold">Good job!</span>
+function displayFeedback(feedback) {
+    // Correctness indicator
+    const correctnessDiv = document.getElementById('correctness');
+    let icon, color, text;
+
+    if (feedback.level === 'correct') {
+        icon = '✅';
+        color = 'text-green-600';
+        text = 'Excellent!';
+    } else if (feedback.level === 'partially_correct') {
+        icon = '⚠️';
+        color = 'text-yellow-600';
+        text = 'Good effort, but...';
+    } else {
+        icon = '❌';
+        color = 'text-red-600';
+        text = 'Needs improvement';
+    }
+
+    correctnessDiv.innerHTML = `
+        <div class="flex items-center ${color}">
+            <span class="text-3xl mr-3">${icon}</span>
+            <span class="text-xl font-semibold">${text}</span>
+        </div>
+    `;
+
+    // Feedback text
+    document.getElementById('feedback-text').innerHTML = `
+        <p class="text-gray-800">${feedback.feedback_text}</p>
+    `;
+
+    // Corrections
+    const correctionsDiv = document.getElementById('corrections');
+    if (feedback.corrections && feedback.corrections.length > 0) {
+        correctionsDiv.innerHTML = `
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h4 class="font-semibold text-gray-900 mb-2">Corrections:</h4>
+                <ul class="list-disc list-inside space-y-1 text-gray-800">
+                    ${feedback.corrections.map(c => `<li>${c}</li>`).join('')}
+                </ul>
             </div>
         `;
+    } else {
+        correctionsDiv.innerHTML = '';
+    }
 
-        document.getElementById('feedbackText').textContent =
-            'AI feedback will be implemented in Phase 4. Your sentence looks great!';
+    // Suggestions
+    const suggestionsDiv = document.getElementById('suggestions');
+    if (feedback.suggestions && feedback.suggestions.length > 0) {
+        suggestionsDiv.innerHTML = `
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 class="font-semibold text-gray-900 mb-2">Suggestions:</h4>
+                <ul class="list-disc list-inside space-y-1 text-gray-800">
+                    ${feedback.suggestions.map(s => `<li>${s}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+    } else {
+        suggestionsDiv.innerHTML = '';
+    }
 
-        feedbackSection.classList.remove('hidden');
-    });
+    // Native tip
+    const nativeTipDiv = document.getElementById('native-tip');
+    if (feedback.native_tip) {
+        nativeTipDiv.innerHTML = `
+            <h4 class="font-semibold text-primary-900 mb-2">💬 Native Speaker Tip:</h4>
+            <p class="text-gray-800">${feedback.native_tip}</p>
+        `;
+    } else {
+        nativeTipDiv.classList.add('hidden');
+    }
+
+    // Show feedback section
+    feedbackSection.classList.remove('hidden');
+
+    // Disable input
+    sentenceInput.disabled = true;
+}
 </script>
 {% endblock %}

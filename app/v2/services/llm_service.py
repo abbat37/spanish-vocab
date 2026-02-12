@@ -325,6 +325,161 @@ Rules:
 
         return True
 
+    def generate_examples(self, spanish: str, english: str, word_type: str, count: int = 3) -> List[Dict]:
+        """
+        Generate example sentences for a Spanish word.
+
+        Args:
+            spanish: Spanish word
+            english: English translation
+            word_type: Type of word (verb, noun, etc.)
+            count: Number of examples to generate (default 3)
+
+        Returns:
+            List of dicts with structure:
+            [
+                {
+                    'spanish': 'Me gusta cocinar.',
+                    'english': 'I like to cook.'
+                },
+                ...
+            ]
+        """
+        prompt = f"""Generate {count} natural Spanish example sentences using the word "{spanish}" ({english}).
+
+Word type: {word_type}
+
+Requirements:
+- Use common, everyday contexts
+- Vary sentence complexity (simple to intermediate)
+- Show different uses of the word
+- Each sentence should be 5-15 words long
+- Include English translations
+
+Return ONLY valid JSON (no markdown, no explanation):
+[
+  {{
+    "spanish": "sentence in Spanish",
+    "english": "sentence in English"
+  }}
+]"""
+
+        try:
+            response = self.client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model=self.model,
+                max_tokens=800,
+                temperature=0.7,  # Higher temp for variety
+                timeout=30.0
+            )
+
+            result_text = response.choices[0].message.content
+
+            # Parse JSON
+            clean_text = result_text.strip()
+            if clean_text.startswith('```'):
+                clean_text = clean_text.split('```')[1]
+                if clean_text.startswith('json'):
+                    clean_text = clean_text[4:]
+                clean_text = clean_text.strip()
+
+            examples = json.loads(clean_text)
+
+            # Validate structure
+            validated = []
+            for ex in examples:
+                if 'spanish' in ex and 'english' in ex:
+                    validated.append(ex)
+
+            return validated[:count]  # Return exactly count examples
+
+        except Exception as e:
+            print(f"Error generating examples: {e}")
+            return []
+
+    def analyze_sentence(self, user_sentence: str, target_word: str, word_english: str, word_type: str) -> Dict:
+        """
+        Analyze user's Spanish sentence and provide detailed feedback.
+
+        Args:
+            user_sentence: User's Spanish sentence
+            target_word: The word they should be practicing
+            word_english: English translation of target word
+            word_type: Type of word (verb, noun, etc.)
+
+        Returns:
+            Dict with structure:
+            {
+                'is_correct': true/false,
+                'level': 'correct' | 'partially_correct' | 'incorrect',
+                'feedback_text': 'Full feedback string',
+                'corrections': ['correction 1', 'correction 2'],
+                'suggestions': ['suggestion 1'],
+                'native_tip': 'Native speaker tip'
+            }
+        """
+        prompt = f"""Analyze this Spanish sentence written by a learner:
+
+**Sentence:** "{user_sentence}"
+
+**Context:** The learner is practicing the word "{target_word}" ({word_english}, {word_type}).
+
+Provide detailed feedback on:
+1. **Correctness:** Is it grammatically correct and natural?
+2. **Usage:** Did they use "{target_word}" correctly?
+3. **Grammar:** Point out any grammar errors
+4. **Vocabulary:** Suggest better word choices if applicable
+5. **Native tip:** How would a native speaker say this?
+
+Return ONLY valid JSON (no markdown, no explanation):
+{{
+  "level": "correct" or "partially_correct" or "incorrect",
+  "is_correct": true or false,
+  "feedback_text": "Brief summary of feedback",
+  "corrections": ["specific correction 1", "specific correction 2"],
+  "suggestions": ["vocabulary or structure suggestion"],
+  "native_tip": "How a native speaker would say this naturally"
+}}
+
+Be encouraging and educational!"""
+
+        try:
+            response = self.client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model=self.model,
+                max_tokens=600,
+                temperature=0.3,  # Lower temp for consistent feedback
+                timeout=30.0
+            )
+
+            result_text = response.choices[0].message.content
+
+            # Parse JSON
+            clean_text = result_text.strip()
+            if clean_text.startswith('```'):
+                clean_text = clean_text.split('```')[1]
+                if clean_text.startswith('json'):
+                    clean_text = clean_text[4:]
+                clean_text = clean_text.strip()
+
+            feedback = json.loads(clean_text)
+
+            # Validate structure
+            required_keys = ['level', 'is_correct', 'feedback_text']
+            if not all(key in feedback for key in required_keys):
+                return None
+
+            # Ensure defaults for optional keys
+            feedback.setdefault('corrections', [])
+            feedback.setdefault('suggestions', [])
+            feedback.setdefault('native_tip', '')
+
+            return feedback
+
+        except Exception as e:
+            print(f"Error analyzing sentence: {e}")
+            return None
+
 # Singleton-like helper function
 def get_llm_service() -> LLMService:
     """Get LLM service instance"""
