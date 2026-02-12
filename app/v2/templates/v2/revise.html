@@ -13,38 +13,50 @@
     <!-- Filter Bar (same as Study page) -->
     <div class="bg-white rounded-lg shadow p-4 mb-6">
         <h3 class="text-sm font-medium text-gray-700 mb-3">Filter Practice Words</h3>
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Type Filter (moved first) -->
-            <select name="word_type" onchange="this.form.submit()"
-                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
-                <option value="">All Types</option>
-                <option value="verb" {% if filters.word_type == 'verb' %}selected{% endif %}>Verbs</option>
-                <option value="noun" {% if filters.word_type == 'noun' %}selected{% endif %}>Nouns</option>
-                <option value="adjective" {% if filters.word_type == 'adjective' %}selected{% endif %}>Adjectives</option>
-                <option value="adverb" {% if filters.word_type == 'adverb' %}selected{% endif %}>Adverbs</option>
-                <option value="phrase" {% if filters.word_type == 'phrase' %}selected{% endif %}>Phrases</option>
-            </select>
+        <form method="GET" class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Type Filter (moved first) -->
+                <select name="word_type" onchange="this.form.submit()"
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                    <option value="">All Types</option>
+                    <option value="verb" {% if filters.word_type == 'verb' %}selected{% endif %}>Verbs</option>
+                    <option value="noun" {% if filters.word_type == 'noun' %}selected{% endif %}>Nouns</option>
+                    <option value="adjective" {% if filters.word_type == 'adjective' %}selected{% endif %}>Adjectives</option>
+                    <option value="adverb" {% if filters.word_type == 'adverb' %}selected{% endif %}>Adverbs</option>
+                    <option value="phrase" {% if filters.word_type == 'phrase' %}selected{% endif %}>Phrases</option>
+                </select>
 
-            <!-- Theme Filter -->
-            <select name="theme" onchange="this.form.submit()"
-                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
-                <option value="">All Themes</option>
-                <option value="weather" {% if filters.theme == 'weather' %}selected{% endif %}>Weather</option>
-                <option value="food" {% if filters.theme == 'food' %}selected{% endif %}>Food</option>
-                <option value="work" {% if filters.theme == 'work' %}selected{% endif %}>Work</option>
-                <option value="travel" {% if filters.theme == 'travel' %}selected{% endif %}>Travel</option>
-                <option value="family" {% if filters.theme == 'family' %}selected{% endif %}>Family</option>
-                <option value="emotions" {% if filters.theme == 'emotions' %}selected{% endif %}>Emotions</option>
-                <option value="sports" {% if filters.theme == 'sports' %}selected{% endif %}>Sports</option>
-                <option value="home" {% if filters.theme == 'home' %}selected{% endif %}>Home</option>
-                <option value="health" {% if filters.theme == 'health' %}selected{% endif %}>Health</option>
-                <option value="other" {% if filters.theme == 'other' %}selected{% endif %}>Other</option>
-            </select>
+                <!-- Theme Filter -->
+                <select name="theme" onchange="this.form.submit()"
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                    <option value="">All Themes</option>
+                    <option value="weather" {% if filters.theme == 'weather' %}selected{% endif %}>Weather</option>
+                    <option value="food" {% if filters.theme == 'food' %}selected{% endif %}>Food</option>
+                    <option value="work" {% if filters.theme == 'work' %}selected{% endif %}>Work</option>
+                    <option value="travel" {% if filters.theme == 'travel' %}selected{% endif %}>Travel</option>
+                    <option value="family" {% if filters.theme == 'family' %}selected{% endif %}>Family</option>
+                    <option value="emotions" {% if filters.theme == 'emotions' %}selected{% endif %}>Emotions</option>
+                    <option value="sports" {% if filters.theme == 'sports' %}selected{% endif %}>Sports</option>
+                    <option value="home" {% if filters.theme == 'home' %}selected{% endif %}>Home</option>
+                    <option value="health" {% if filters.theme == 'health' %}selected{% endif %}>Health</option>
+                    <option value="other" {% if filters.theme == 'other' %}selected{% endif %}>Other</option>
+                </select>
 
-            <a href="{{ url_for('v2.revise') }}"
-               class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-center transition">
-                Clear Filters
-            </a>
+                <a href="{{ url_for('v2.revise') }}"
+                   class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-center transition">
+                    Clear Filters
+                </a>
+            </div>
+
+            <!-- Include Unlearned Words Checkbox (enabled on Revise page) -->
+            <div class="flex items-center">
+                <input type="checkbox" id="include-unlearned" name="include_unlearned" onchange="this.form.submit()"
+                       {% if filters.include_unlearned %}checked{% endif %}
+                       class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
+                <label for="include-unlearned" class="ml-2 text-sm text-gray-700">
+                    Include Unlearned Words
+                </label>
+            </div>
         </form>
     </div>
 
@@ -72,14 +84,21 @@
             <textarea id="sentence" name="sentence" rows="4"
                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-lg"
                       placeholder="Escribe tu oración aquí..."></textarea>
+            <div id="sentence-error" class="hidden mt-2 text-sm text-red-600">
+                Please write a sentence first
+            </div>
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex justify-between">
+        <div class="flex justify-between items-center">
             <button id="tip-button" onclick="toggleTip()"
                     class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
-                💡 Show Translation
+                Show Translation
             </button>
+            <a href="{{ url_for('v2.revise', theme=filters.theme, word_type=filters.word_type) }}"
+               class="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium transition">
+                Skip Word
+            </a>
             <button id="submit-button" onclick="submitPractice()"
                     class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
                 Check Answer
@@ -170,11 +189,19 @@ function toggleTip() {
 
 async function submitPractice() {
     const sentence = sentenceInput.value.trim();
+    const errorDiv = document.getElementById('sentence-error');
 
     if (!sentence) {
-        alert('Please write a sentence first!');
+        // Show inline error message
+        errorDiv.classList.remove('hidden');
+        sentenceInput.classList.add('border-red-300');
+        sentenceInput.focus();
         return;
     }
+
+    // Hide error message if present
+    errorDiv.classList.add('hidden');
+    sentenceInput.classList.remove('border-red-300');
 
     // Show loading state
     submitButton.disabled = true;
@@ -223,22 +250,18 @@ function displayFeedback(feedback) {
     let icon, color, text;
 
     if (feedback.level === 'correct') {
-        icon = '✅';
         color = 'text-green-600';
         text = 'Excellent!';
     } else if (feedback.level === 'partially_correct') {
-        icon = '⚠️';
         color = 'text-yellow-600';
         text = 'Good effort, but...';
     } else {
-        icon = '❌';
         color = 'text-red-600';
         text = 'Needs improvement';
     }
 
     correctnessDiv.innerHTML = `
         <div class="flex items-center ${color}">
-            <span class="text-3xl mr-3">${icon}</span>
             <span class="text-xl font-semibold">${text}</span>
         </div>
     `;
@@ -282,7 +305,7 @@ function displayFeedback(feedback) {
     const nativeTipDiv = document.getElementById('native-tip');
     if (feedback.native_tip) {
         nativeTipDiv.innerHTML = `
-            <h4 class="font-semibold text-primary-900 mb-2">💬 Native Speaker Tip:</h4>
+            <h4 class="font-semibold text-primary-900 mb-2">Native Speaker Tip:</h4>
             <p class="text-gray-800">${feedback.native_tip}</p>
         `;
     } else {

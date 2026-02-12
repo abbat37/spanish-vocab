@@ -436,7 +436,7 @@ Provide detailed feedback on:
 IMPORTANT DISTINCTIONS:
 - "corrections": Fix specific ERRORS in their sentence (grammar, spelling, word order)
 - "suggestions": Offer IMPROVEMENTS for better style, more advanced vocabulary, or clearer expression (optional enhancements, NOT errors)
-- "native_tip": Provide a COMPLETELY DIFFERENT sentence that expresses the same meaning but sounds more natural/colloquial/idiomatic to native speakers. This should feel authentic to how locals actually speak, NOT just a polished version of their sentence.
+- "native_tip": Provide ONLY the Spanish sentence that a native speaker would naturally say. NO explanations, NO prefixes like "Una forma más natural...", NO English translations. Just the authentic Spanish sentence itself, nothing more.
 
 Return ONLY valid JSON (no markdown, no explanation):
 {{
@@ -445,7 +445,7 @@ Return ONLY valid JSON (no markdown, no explanation):
   "feedback_text": "Brief summary of feedback",
   "corrections": ["specific error fix 1", "specific error fix 2"],
   "suggestions": ["optional style/vocabulary enhancement"],
-  "native_tip": "A completely different way to express this idea that sounds authentic and natural to native speakers"
+  "native_tip": "Just the Spanish sentence a native would say - no explanations or prefixes"
 }}
 
 Be encouraging and educational!"""

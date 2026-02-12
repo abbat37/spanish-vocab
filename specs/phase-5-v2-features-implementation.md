@@ -861,7 +861,7 @@ Due to length, I'll continue with the Study page template and remaining sections
 
         <button onclick="markLearned({{ word.id }})"
                 class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition">
-            ✓ Mark as Learned
+             Mark as Learned
         </button>
     </div>
 
@@ -1325,7 +1325,7 @@ Be encouraging and educational!"""
         <div class="flex justify-between">
             <button id="tip-button" onclick="toggleTip()"
                     class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
-                💡 Show Translation
+                Show Translation
             </button>
             <button id="submit-button" onclick="submitPractice()"
                     class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
@@ -1462,7 +1462,7 @@ function displayFeedback(feedback) {
     let icon, color, text;
 
     if (feedback.level === 'correct') {
-        icon = '✅';
+        icon = '';
         color = 'text-green-600';
         text = 'Excellent!';
     } else if (feedback.level === 'partially_correct') {
@@ -1521,7 +1521,7 @@ function displayFeedback(feedback) {
     const nativeTipDiv = document.getElementById('native-tip');
     if (feedback.native_tip) {
         nativeTipDiv.innerHTML = `
-            <h4 class="font-semibold text-primary-900 mb-2">💬 Native Speaker Tip:</h4>
+            <h4 class="font-semibold text-primary-900 mb-2">Native Speaker Tip:</h4>
             <p class="text-gray-800">${feedback.native_tip}</p>
         `;
     } else {

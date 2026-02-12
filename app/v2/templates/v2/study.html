@@ -13,39 +13,50 @@
     <!-- Filter Bar -->
     <div class="bg-white rounded-lg shadow p-4 mb-6">
         <h3 class="text-sm font-medium text-gray-700 mb-3">Filter Study Words</h3>
-        <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Type Filter (moved first) -->
-            <select name="word_type" onchange="this.form.submit()"
-                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
-                <option value="">All Types</option>
-                <option value="verb" {% if filters.word_type == 'verb' %}selected{% endif %}>Verbs</option>
-                <option value="noun" {% if filters.word_type == 'noun' %}selected{% endif %}>Nouns</option>
-                <option value="adjective" {% if filters.word_type == 'adjective' %}selected{% endif %}>Adjectives</option>
-                <option value="adverb" {% if filters.word_type == 'adverb' %}selected{% endif %}>Adverbs</option>
-                <option value="phrase" {% if filters.word_type == 'phrase' %}selected{% endif %}>Phrases</option>
-            </select>
+        <form method="GET" class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Type Filter (moved first) -->
+                <select name="word_type" onchange="this.form.submit()"
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                    <option value="">All Types</option>
+                    <option value="verb" {% if filters.word_type == 'verb' %}selected{% endif %}>Verbs</option>
+                    <option value="noun" {% if filters.word_type == 'noun' %}selected{% endif %}>Nouns</option>
+                    <option value="adjective" {% if filters.word_type == 'adjective' %}selected{% endif %}>Adjectives</option>
+                    <option value="adverb" {% if filters.word_type == 'adverb' %}selected{% endif %}>Adverbs</option>
+                    <option value="phrase" {% if filters.word_type == 'phrase' %}selected{% endif %}>Phrases</option>
+                </select>
 
-            <!-- Theme Filter -->
-            <select name="theme" onchange="this.form.submit()"
-                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
-                <option value="">All Themes</option>
-                <option value="weather" {% if filters.theme == 'weather' %}selected{% endif %}>Weather</option>
-                <option value="food" {% if filters.theme == 'food' %}selected{% endif %}>Food</option>
-                <option value="work" {% if filters.theme == 'work' %}selected{% endif %}>Work</option>
-                <option value="travel" {% if filters.theme == 'travel' %}selected{% endif %}>Travel</option>
-                <option value="family" {% if filters.theme == 'family' %}selected{% endif %}>Family</option>
-                <option value="emotions" {% if filters.theme == 'emotions' %}selected{% endif %}>Emotions</option>
-                <option value="sports" {% if filters.theme == 'sports' %}selected{% endif %}>Sports</option>
-                <option value="home" {% if filters.theme == 'home' %}selected{% endif %}>Home</option>
-                <option value="health" {% if filters.theme == 'health' %}selected{% endif %}>Health</option>
-                <option value="other" {% if filters.theme == 'other' %}selected{% endif %}>Other</option>
-            </select>
+                <!-- Theme Filter -->
+                <select name="theme" onchange="this.form.submit()"
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                    <option value="">All Themes</option>
+                    <option value="weather" {% if filters.theme == 'weather' %}selected{% endif %}>Weather</option>
+                    <option value="food" {% if filters.theme == 'food' %}selected{% endif %}>Food</option>
+                    <option value="work" {% if filters.theme == 'work' %}selected{% endif %}>Work</option>
+                    <option value="travel" {% if filters.theme == 'travel' %}selected{% endif %}>Travel</option>
+                    <option value="family" {% if filters.theme == 'family' %}selected{% endif %}>Family</option>
+                    <option value="emotions" {% if filters.theme == 'emotions' %}selected{% endif %}>Emotions</option>
+                    <option value="sports" {% if filters.theme == 'sports' %}selected{% endif %}>Sports</option>
+                    <option value="home" {% if filters.theme == 'home' %}selected{% endif %}>Home</option>
+                    <option value="health" {% if filters.theme == 'health' %}selected{% endif %}>Health</option>
+                    <option value="other" {% if filters.theme == 'other' %}selected{% endif %}>Other</option>
+                </select>
 
-            <!-- Clear Filters Button -->
-            <a href="{{ url_for('v2.study') }}"
-               class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-center transition">
-                Clear Filters
-            </a>
+                <!-- Clear Filters Button -->
+                <a href="{{ url_for('v2.study') }}"
+                   class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-center transition">
+                    Clear Filters
+                </a>
+            </div>
+
+            <!-- Learned Words Checkbox (disabled on Study page) -->
+            <div class="flex items-center">
+                <input type="checkbox" id="include-learned" name="include_learned" disabled
+                       class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 opacity-50 cursor-not-allowed">
+                <label for="include-learned" class="ml-2 text-sm text-gray-400">
+                    Include Learned Words (only available on Revise page)
+                </label>
+            </div>
         </form>
     </div>
 
@@ -113,12 +124,12 @@
         {% if word.is_learned %}
         <button disabled
                 class="px-6 py-3 bg-green-100 text-green-700 rounded-lg font-medium cursor-not-allowed">
-            ✓ Learned
+            Learned
         </button>
         {% else %}
         <button id="mark-learned-btn" onclick="markLearned({{ word.id }})"
                 class="px-6 py-3 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 font-medium transition">
-            ✓ Mark as Learned
+            Mark as Learned
         </button>
         {% endif %}
     </div>
@@ -263,7 +274,7 @@ async function markLearned(wordId) {
             showFlashMessage('Error: ' + data.error, 'error');
             if (btn) {
                 btn.disabled = false;
-                btn.textContent = '✓ Mark as Learned';
+                btn.textContent = 'Mark as Learned';
             }
         }
     } catch (error) {
@@ -271,7 +282,7 @@ async function markLearned(wordId) {
         showFlashMessage('Failed to mark word as learned. Please try again.', 'error');
         if (btn) {
             btn.disabled = false;
-            btn.textContent = '✓ Mark as Learned';
+            btn.textContent = 'Mark as Learned';
         }
     }
 }
