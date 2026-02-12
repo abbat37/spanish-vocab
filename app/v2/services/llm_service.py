@@ -345,15 +345,17 @@ Rules:
                 ...
             ]
         """
-        prompt = f"""Generate {count} natural Spanish example sentences using the word "{spanish}" ({english}).
+        prompt = f"""Generate {count} DIFFERENT natural Spanish example sentences using the word "{spanish}" ({english}).
 
 Word type: {word_type}
 
-Requirements:
-- Use common, everyday contexts
+CRITICAL REQUIREMENTS:
+- Each sentence must be COMPLETELY DIFFERENT from the others
+- Use VARIED contexts: daily life, work, family, travel, etc.
 - Vary sentence complexity (simple to intermediate)
-- Show different uses of the word
+- Show different grammatical uses of the word
 - Each sentence should be 5-15 words long
+- DO NOT repeat the same sentence structure
 - Include English translations
 
 Return ONLY valid JSON (no markdown, no explanation):
@@ -429,16 +431,21 @@ Provide detailed feedback on:
 2. **Usage:** Did they use "{target_word}" correctly?
 3. **Grammar:** Point out any grammar errors
 4. **Vocabulary:** Suggest better word choices if applicable
-5. **Native tip:** How would a native speaker say this?
+5. **Native tip:** Provide an ALTERNATIVE way to express the same idea that sounds more natural/idiomatic
+
+IMPORTANT DISTINCTIONS:
+- "corrections": Fix specific ERRORS in their sentence (grammar, spelling, word order)
+- "suggestions": Offer IMPROVEMENTS for better style, more advanced vocabulary, or clearer expression (optional enhancements, NOT errors)
+- "native_tip": Provide a COMPLETELY DIFFERENT sentence that expresses the same meaning but sounds more natural/colloquial/idiomatic to native speakers. This should feel authentic to how locals actually speak, NOT just a polished version of their sentence.
 
 Return ONLY valid JSON (no markdown, no explanation):
 {{
   "level": "correct" or "partially_correct" or "incorrect",
   "is_correct": true or false,
   "feedback_text": "Brief summary of feedback",
-  "corrections": ["specific correction 1", "specific correction 2"],
-  "suggestions": ["vocabulary or structure suggestion"],
-  "native_tip": "How a native speaker would say this naturally"
+  "corrections": ["specific error fix 1", "specific error fix 2"],
+  "suggestions": ["optional style/vocabulary enhancement"],
+  "native_tip": "A completely different way to express this idea that sounds authentic and natural to native speakers"
 }}
 
 Be encouraging and educational!"""

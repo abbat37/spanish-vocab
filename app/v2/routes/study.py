@@ -81,8 +81,17 @@ def register_study_routes(bp):
                     'error': 'Failed to generate examples'
                 }), 500
 
-            # Save to database
+            # Deduplicate examples based on Spanish sentence
+            seen = set()
+            unique_examples = []
             for ex in examples:
+                spanish_lower = ex['spanish'].lower().strip()
+                if spanish_lower not in seen:
+                    seen.add(spanish_lower)
+                    unique_examples.append(ex)
+
+            # Save to database
+            for ex in unique_examples:
                 example = V2GeneratedExample(
                     word_id=word.id,
                     spanish_sentence=ex['spanish'],

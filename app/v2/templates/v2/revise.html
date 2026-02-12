@@ -193,15 +193,19 @@ async function submitPractice() {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            console.error('Server error:', response.status, errorText);
+            throw new Error(`Server returned ${response.status}`);
         }
 
         const data = await response.json();
 
-        if (data.success) {
+        if (data.success && data.feedback) {
             displayFeedback(data.feedback);
+            // Hide button after successful submission
+            submitButton.style.display = 'none';
         } else {
-            alert('Error: ' + data.error);
+            alert('Error: ' + (data.error || 'Unknown error'));
             submitButton.disabled = false;
             submitButton.textContent = 'Check Answer';
         }
