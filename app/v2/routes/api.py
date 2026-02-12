@@ -4,10 +4,11 @@ RESTful API endpoints for bulk word processing
 """
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
-from app.shared.extensions import limiter
+from app.shared.extensions import limiter, db
 from app.v2.services.llm_service import get_llm_service
 from app.v2.services.word_service import WordService
 from app.v2.utils import parse_bulk_word_input, truncate_if_needed, validate_word_before_llm
+from app.v2.models import V2Word
 
 api_bp = Blueprint('v2_api', __name__)
 
@@ -158,4 +159,133 @@ def process_words():
             'success': False,
             'error': 'Server error occurred',
             'details': str(e)
+        }), 500
+
+@api_bp.route('/words/<int:word_id>', methods=['PUT'])
+@login_required
+def update_word(word_id):
+    """
+    Update a word's details.
+
+    Request JSON:
+        {
+            "spanish": "cocinar",
+            "english": "to cook",
+            "word_type": "verb",
+            "themes": ["food", "home"]
+        }
+
+    Response JSON:
+        {
+            "success": true,
+            "word": {...}
+        }
+    """
+    try:
+        data = request.get_json()
+
+        # Find word (ensure it belongs to current user)
+        word = V2Word.query.filter_by(
+            id=word_id,
+            user_id=current_user.id
+        ).first()
+
+        if not word:
+            return jsonify({
+                'success': False,
+                'error': 'Word not found'
+            }), 404
+
+        # Validate input
+        spanish = data.get('spanish', '').strip()
+        english = data.get('english', '').strip()
+        word_type = data.get('word_type', '').strip()
+        themes = data.get('themes', [])
+
+        if not spanish or not english or not word_type:
+            return jsonify({
+                'success': False,
+                'error': 'Missing required fields'
+            }), 400
+
+        if len(themes) == 0 or len(themes) > 3:
+            return jsonify({
+                'success': False,
+                'error': 'Please select 1-3 themes'
+            }), 400
+
+        # Check for duplicates (if Spanish word changed)
+        if word.spanish.lower() != spanish.lower():
+            existing = V2Word.query.filter(
+                V2Word.user_id == current_user.id,
+                V2Word.id != word_id,
+                db.func.lower(V2Word.spanish) == spanish.lower()
+            ).first()
+
+            if existing:
+                return jsonify({
+                    'success': False,
+                    'error': f'Word "{spanish}" already exists'
+                }), 400
+
+        # Update word
+        word.spanish = spanish
+        word.english = english
+        word.word_type = word_type
+        word.themes = ','.join(themes)
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'word': word.to_dict()
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating word: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error'
+        }), 500
+
+
+@api_bp.route('/words/<int:word_id>', methods=['DELETE'])
+@login_required
+def delete_word(word_id):
+    """
+    Delete a word (cascades to examples and practice attempts).
+
+    Response JSON:
+        {
+            "success": true
+        }
+    """
+    try:
+        # Find word (ensure it belongs to current user)
+        word = V2Word.query.filter_by(
+            id=word_id,
+            user_id=current_user.id
+        ).first()
+
+        if not word:
+            return jsonify({
+                'success': False,
+                'error': 'Word not found'
+            }), 404
+
+        # Delete (cascades automatically)
+        db.session.delete(word)
+        db.session.commit()
+
+        return jsonify({
+            'success': True
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting word: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error'
         }), 500

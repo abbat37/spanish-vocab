@@ -222,42 +222,63 @@ app/
 ---
 
 ### 📋 Phase 5: V2 Features Implementation
-**Status:** Spec needed
+**Status:** Ready for implementation
+**Spec:** [phase-5-v2-features-implementation.md](phase-5-v2-features-implementation.md)
 **Duration:** 3-4 sessions
 
 #### Goals
-Implement the three main v2 features:
+Implement the three main v2 features with full CRUD, filtering, and AI integration:
 
-##### 5.1: Create Page
-- Add/edit words with Spanish/English translations
-- Tag words by type (verb, noun, adj) and themes
-- Pre-generate AI examples for each word
-- Filter and search word database
+##### 5.1: Create Page (Enhanced)
+- ✅ Bulk word entry with AI (from Phase 4)
+- Full edit modal for all fields (Spanish, English, type, themes)
+- Delete functionality with cascade
+- Real-time search by Spanish/English
+- Filter by word type and theme
 
 ##### 5.2: Study Page
-- Show flashcards with word + AI-generated examples
+- Flashcard display with word details
+- On-demand AI example generation (3 sentences per word)
+- Example caching in database
 - Mark words as "learned"
-- Regenerate examples button (new AI generation)
-- Next button for random word selection
+- Filter by theme and word type
+- Random word selection
 
 ##### 5.3: Revise Page
-- Prompt user to use learned words in sentences
-- AI feedback on correctness and suggestions
-- Tip button (show Spanish translation)
-- Track practice attempts
+- Practice writing sentences with learned words
+- Detailed AI feedback (grammar, corrections, suggestions)
+- Native speaker tips
+- Translation hint toggle
+- Save practice attempts to database
+- Filter by theme and word type
 
 #### Deliverables
-- [ ] Create page fully functional
-- [ ] Study page fully functional
-- [ ] Revise page fully functional
-- [ ] All v2 APIs working
-- [ ] Frontend JavaScript for interactivity
+- [ ] Edit modal with full field editing
+- [ ] Delete with cascade confirmation
+- [ ] Search and filter UI on Create page
+- [ ] Study page with on-demand example generation
+- [ ] Mark as learned functionality
+- [ ] Revise page with AI sentence analysis
+- [ ] Detailed feedback display (corrections, suggestions, tips)
+- [ ] Practice attempt tracking
+- [ ] Filters on Study and Revise pages
+- [ ] All CRUD API endpoints
 - [ ] Mobile-responsive design
+- [ ] Consistent design system usage
+
+#### Key Decisions (from user feedback)
+- **Example Generation:** On-demand with caching (cost-optimized)
+- **Edit Scope:** All fields editable (full user control)
+- **Feedback Detail:** Detailed with grammar explanations (educational)
+- **Filters:** Implemented in Phase 5 (better UX)
 
 #### Learning Focus
-- CRUD operations with Flask
+- Complete CRUD operations with Flask
 - AJAX requests with Fetch API
-- AI-powered UX patterns
+- On-demand AI generation with caching
+- Structured AI feedback parsing
+- Client-side filtering and search
+- Modal UI patterns
 - State management in web apps
 
 ---

@@ -49,13 +49,55 @@
 
     <!-- Word List -->
     <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Your Vocabulary</h2>
+        <!-- Header with Filters -->
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Your Vocabulary</h2>
+
+            <!-- Compact Filter Bar -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <!-- Search Box -->
+                <input type="text" id="search-input" placeholder="Search words..."
+                       class="flex-1 sm:max-w-xs px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+
+                <!-- Word Type Filter -->
+                <select id="filter-type" class="px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white">
+                    <option value="">All Types</option>
+                    <option value="verb">Verbs</option>
+                    <option value="noun">Nouns</option>
+                    <option value="adjective">Adjectives</option>
+                    <option value="adverb">Adverbs</option>
+                    <option value="phrase">Phrases</option>
+                    <option value="function_word">Function Words</option>
+                    <option value="number">Numbers</option>
+                    <option value="other">Other</option>
+                </select>
+
+                <!-- Theme Filter -->
+                <select id="filter-theme" class="px-4 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white">
+                    <option value="">All Themes</option>
+                    <option value="weather">Weather</option>
+                    <option value="food">Food</option>
+                    <option value="work">Work</option>
+                    <option value="travel">Travel</option>
+                    <option value="family">Family</option>
+                    <option value="emotions">Emotions</option>
+                    <option value="sports">Sports</option>
+                    <option value="home">Home</option>
+                    <option value="health">Health</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+        </div>
 
         {% if words %}
         <!-- Card-based layout for all screen sizes -->
         <div class="space-y-3">
             {% for word in words %}
-            <div class="bg-white border-b border-gray-200 p-6 hover:bg-gray-50 transition">
+            <div class="word-card bg-white border-b border-gray-200 p-6 hover:bg-gray-50 transition"
+                 data-spanish="{{ word.spanish }}"
+                 data-english="{{ word.english }}"
+                 data-type="{{ word.word_type }}"
+                 data-themes="{{ word.themes }}">
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
                     <!-- Left: Word content -->
                     <div class="flex-1 min-w-0">
@@ -80,13 +122,20 @@
 
                     <!-- Right: Actions -->
                     <div class="flex flex-row sm:flex-col gap-4 flex-shrink-0">
-                        <button class="px-5 py-2.5 text-base font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition duration-200 flex items-center justify-start gap-2">
+                        <button class="edit-btn px-5 py-2.5 text-base font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition duration-200 flex items-center justify-start gap-2"
+                                data-word-id="{{ word.id }}"
+                                data-spanish="{{ word.spanish }}"
+                                data-english="{{ word.english }}"
+                                data-word-type="{{ word.word_type }}"
+                                data-themes="{{ word.themes }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                             <span>Edit</span>
                         </button>
-                        <button class="px-5 py-2.5 text-base font-medium text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition duration-200 flex items-center justify-start gap-2">
+                        <button class="delete-btn px-5 py-2.5 text-base font-medium text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition duration-200 flex items-center justify-start gap-2"
+                                data-word-id="{{ word.id }}"
+                                data-spanish="{{ word.spanish }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
@@ -106,16 +155,169 @@
         </div>
         {% endif %}
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; background-color: rgba(0, 0, 0, 0.5);">
+        <div class="flex items-end sm:items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full p-6 sm:my-8" style="max-width: 450px;">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-gray-900">Delete Word</h3>
+                    <button onclick="closeDeleteModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Content -->
+                <div class="mb-6">
+                    <p class="text-sm text-gray-600">Are you sure you want to delete <span class="font-semibold text-gray-900" id="delete-word-name"></span>?</p>
+                    <p class="text-sm text-gray-600 mt-2">This action cannot be undone.</p>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeDeleteModal()"
+                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
+                        Cancel
+                    </button>
+                    <button type="button" onclick="confirmDelete()"
+                            class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal (hidden by default) -->
+    <div id="edit-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; background-color: rgba(0, 0, 0, 0.5); overflow-y: auto;">
+        <div class="flex items-end sm:items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full p-6 sm:my-8" style="max-width: 450px;">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-gray-900">Edit Word</h3>
+                <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form id="edit-form" class="space-y-4">
+                <input type="hidden" id="edit-word-id">
+
+                <!-- Spanish Word (Read-only) -->
+                <div>
+                    <label for="edit-spanish" class="block text-sm font-medium text-gray-700 mb-1">
+                        Spanish Word
+                    </label>
+                    <input type="text" id="edit-spanish" required readonly
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed">
+                </div>
+
+                <!-- English Translation -->
+                <div>
+                    <label for="edit-english" class="block text-sm font-medium text-gray-700 mb-1">
+                        English Translation
+                    </label>
+                    <input type="text" id="edit-english" required
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                </div>
+
+                <!-- Word Type -->
+                <div>
+                    <label for="edit-word-type" class="block text-sm font-medium text-gray-700 mb-1">
+                        Word Type
+                    </label>
+                    <select id="edit-word-type" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        <option value="verb">Verb</option>
+                        <option value="noun">Noun</option>
+                        <option value="adjective">Adjective</option>
+                        <option value="adverb">Adverb</option>
+                        <option value="phrase">Phrase</option>
+                        <option value="function_word">Function Word</option>
+                        <option value="number">Number</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Themes (multi-select with checkboxes) -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Themes (select 1-3)
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" name="edit-themes" value="weather" class="form-checkbox text-primary-600 h-4 w-4">
+                            <span class="text-sm">Weather</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" name="edit-themes" value="food" class="form-checkbox text-primary-600 h-4 w-4">
+                            <span class="text-sm">Food</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" name="edit-themes" value="work" class="form-checkbox text-primary-600 h-4 w-4">
+                            <span class="text-sm">Work</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" name="edit-themes" value="travel" class="form-checkbox text-primary-600 h-4 w-4">
+                            <span class="text-sm">Travel</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" name="edit-themes" value="family" class="form-checkbox text-primary-600 h-4 w-4">
+                            <span class="text-sm">Family</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" name="edit-themes" value="emotions" class="form-checkbox text-primary-600 h-4 w-4">
+                            <span class="text-sm">Emotions</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" name="edit-themes" value="sports" class="form-checkbox text-primary-600 h-4 w-4">
+                            <span class="text-sm">Sports</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" name="edit-themes" value="home" class="form-checkbox text-primary-600 h-4 w-4">
+                            <span class="text-sm">Home</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" name="edit-themes" value="health" class="form-checkbox text-primary-600 h-4 w-4">
+                            <span class="text-sm">Health</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" name="edit-themes" value="other" class="form-checkbox text-primary-600 h-4 w-4">
+                            <span class="text-sm">Other</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="closeEditModal()"
+                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" id="save-changes-btn"
+                            class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-600">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block v2_scripts %}
 <script>
-// On page load, check if there's a success message to display
+// ========== Initialize Everything on DOM Ready ==========
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing...');
+
+    // 1. Check for success messages
     const successMessage = sessionStorage.getItem('successMessage');
     if (successMessage) {
-        // Check for errors to display
         let successDetails = '';
         const errorsJson = sessionStorage.getItem('successErrors');
         if (errorsJson) {
@@ -130,11 +332,88 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         showStatus('success', successMessage, true, successDetails);
-
-        // Clear from sessionStorage
         sessionStorage.removeItem('successMessage');
         sessionStorage.removeItem('successErrors');
     }
+
+    // 2. Set up button click handlers with event delegation
+    document.body.addEventListener('click', function(e) {
+        // Edit button
+        const editBtn = e.target.closest('.edit-btn');
+        if (editBtn) {
+            console.log('Edit button clicked');
+            e.preventDefault();
+            const wordId = editBtn.dataset.wordId;
+            const spanish = editBtn.dataset.spanish;
+            const english = editBtn.dataset.english;
+            const wordType = editBtn.dataset.wordType;
+            const themes = editBtn.dataset.themes.split(',');
+            openEditModal(wordId, spanish, english, wordType, themes);
+            return;
+        }
+
+        // Delete button
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (deleteBtn) {
+            console.log('Delete button clicked');
+            e.preventDefault();
+            const wordId = deleteBtn.dataset.wordId;
+            const spanish = deleteBtn.dataset.spanish;
+            deleteWord(wordId, spanish);
+            return;
+        }
+    });
+
+    // 3. Set up edit form submission
+    const editForm = document.getElementById('edit-form');
+    if (editForm) {
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const wordId = document.getElementById('edit-word-id').value;
+            const spanish = document.getElementById('edit-spanish').value.trim();
+            const english = document.getElementById('edit-english').value.trim();
+            const wordType = document.getElementById('edit-word-type').value;
+
+            const themes = Array.from(document.querySelectorAll('input[name="edit-themes"]:checked'))
+                .map(cb => cb.value);
+
+            // Validation should be handled by button state, but double-check
+            if (themes.length === 0 || themes.length > 3) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/v2/api/words/${wordId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ spanish, english, word_type: wordType, themes })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    closeEditModal();
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to update word. Please try again.');
+            }
+        });
+    }
+
+    // 4. Set up search and filter listeners
+    const searchInput = document.getElementById('search-input');
+    const filterType = document.getElementById('filter-type');
+    const filterTheme = document.getElementById('filter-theme');
+
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (filterType) filterType.addEventListener('change', applyFilters);
+    if (filterTheme) filterTheme.addEventListener('change', applyFilters);
+
+    console.log('Initialization complete');
 });
 
 async function processBulkWords() {
@@ -249,6 +528,167 @@ function showStatus(type, message, showClose = false, details = '') {
         </div>
     `;
     statusDiv.classList.remove('hidden');
+}
+
+// ========== Edit Modal Functions ==========
+
+function openEditModal(wordId, spanish, english, wordType, themes) {
+    console.log('Opening edit modal for word:', wordId);
+    document.getElementById('edit-word-id').value = wordId;
+    document.getElementById('edit-spanish').value = spanish;
+    document.getElementById('edit-english').value = english;
+    document.getElementById('edit-word-type').value = wordType;
+
+    // Uncheck all themes first and enable all
+    document.querySelectorAll('input[name="edit-themes"]').forEach(cb => {
+        cb.checked = false;
+        cb.disabled = false;
+        cb.parentElement.classList.remove('opacity-50', 'cursor-not-allowed');
+        cb.classList.remove('cursor-not-allowed');
+    });
+
+    // Check selected themes
+    themes.forEach(theme => {
+        const checkbox = document.querySelector(`input[name="edit-themes"][value="${theme}"]`);
+        if (checkbox) checkbox.checked = true;
+    });
+
+    // Set up theme checkbox limit handler
+    updateThemeCheckboxes();
+    document.querySelectorAll('input[name="edit-themes"]').forEach(cb => {
+        cb.addEventListener('change', updateThemeCheckboxes);
+    });
+
+    const modal = document.getElementById('edit-modal');
+    modal.style.setProperty('display', 'block', 'important');
+    modal.style.visibility = 'visible';
+    modal.style.opacity = '1';
+    console.log('Edit modal displayed, computed display:', window.getComputedStyle(modal).display);
+    console.log('Modal element:', modal);
+}
+
+function updateThemeCheckboxes() {
+    const checkboxes = document.querySelectorAll('input[name="edit-themes"]');
+    const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+    const saveBtn = document.getElementById('save-changes-btn');
+
+    // Disable/enable checkboxes when 3 are selected
+    checkboxes.forEach(cb => {
+        if (!cb.checked && checkedCount >= 3) {
+            cb.disabled = true;
+            cb.parentElement.classList.add('opacity-50', 'cursor-not-allowed');
+            cb.classList.add('cursor-not-allowed');
+        } else {
+            cb.disabled = false;
+            cb.parentElement.classList.remove('opacity-50', 'cursor-not-allowed');
+            cb.classList.remove('cursor-not-allowed');
+        }
+    });
+
+    // Disable Save button if no themes selected
+    if (saveBtn) {
+        if (checkedCount === 0 || checkedCount > 3) {
+            saveBtn.disabled = true;
+        } else {
+            saveBtn.disabled = false;
+        }
+    }
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('edit-modal');
+    modal.style.setProperty('display', 'none', 'important');
+    modal.style.visibility = 'hidden';
+    modal.style.opacity = '0';
+}
+
+// ========== Delete Word Functions ==========
+
+let deleteWordId = null;
+let deleteWordName = '';
+
+function deleteWord(wordId, spanish) {
+    console.log('Opening delete modal for word:', wordId);
+    deleteWordId = wordId;
+    deleteWordName = spanish;
+    document.getElementById('delete-word-name').textContent = spanish;
+
+    const modal = document.getElementById('delete-modal');
+    modal.style.setProperty('display', 'block', 'important');
+    modal.style.visibility = 'visible';
+    modal.style.opacity = '1';
+    console.log('Delete modal displayed, computed display:', window.getComputedStyle(modal).display);
+    console.log('Modal element:', modal);
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('delete-modal');
+    modal.style.setProperty('display', 'none', 'important');
+    modal.style.visibility = 'hidden';
+    modal.style.opacity = '0';
+    deleteWordId = null;
+    deleteWordName = '';
+}
+
+async function confirmDelete() {
+    if (!deleteWordId) return;
+
+    try {
+        const response = await fetch(`/v2/api/words/${deleteWordId}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            closeDeleteModal();
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to delete word. Please try again.');
+    }
+}
+
+// ========== Search and Filter Functions ==========
+
+function applyFilters() {
+    const searchInput = document.getElementById('search-input');
+    const filterType = document.getElementById('filter-type');
+    const filterTheme = document.getElementById('filter-theme');
+
+    const searchTerm = searchInput.value.toLowerCase();
+    const selectedType = filterType.value;
+    const selectedTheme = filterTheme.value;
+
+    const wordCards = document.querySelectorAll('.word-card');
+
+    wordCards.forEach(card => {
+        const spanish = card.dataset.spanish.toLowerCase();
+        const english = card.dataset.english.toLowerCase();
+        const type = card.dataset.type;
+        const themes = card.dataset.themes.split(',');
+
+        // Check search match
+        const searchMatch = !searchTerm ||
+                          spanish.includes(searchTerm) ||
+                          english.includes(searchTerm);
+
+        // Check type match
+        const typeMatch = !selectedType || type === selectedType;
+
+        // Check theme match
+        const themeMatch = !selectedTheme || themes.includes(selectedTheme);
+
+        // Show/hide card
+        if (searchMatch && typeMatch && themeMatch) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
 }
 </script>
 {% endblock %}

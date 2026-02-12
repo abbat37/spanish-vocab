@@ -28,6 +28,7 @@ Specs progress through these statuses:
 | [Phase 2: V2 Scaffold](phase-2-v2-scaffold.md) | done | High | 2026-02-10 |
 | [Phase 3: V2 Database Schema](phase-3-v2-database-schema.md) | done | High | 2026-02-11 |
 | [Phase 4: LLM Integration](phase-4-llm-bulk-entry.md) | done | High | 2026-02-12 |
+| [Phase 5: V2 Features Implementation](phase-5-v2-features-implementation.md) | ready | High | TBD |
 | [PostgreSQL Migration](postgres-migration.md) | draft | Medium | TBD |
 
 ## How to Use Specs
