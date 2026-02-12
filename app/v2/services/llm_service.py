@@ -77,10 +77,13 @@ ACCEPT AND NORMALIZE:
 - Gender variations with slash (e.g., "lejo/a", "amigo/a")
 
 IMPORTANT NORMALIZATION RULES:
-1. For VERBS not in infinitive form (e.g., "comí", "hablando"), return the INFINITIVE form only (e.g., "comer", "hablar")
-2. For NOUNS/ADJECTIVES with gender/number variations, return MASCULINE SINGULAR form only (e.g., "gato" not "gata", "bonito" not "bonita")
-3. Keep phrases and function words as-is
-4. Preserve accents and special characters
+1. ALL words must be LOWERCASE (e.g., "Hola" → "hola", "CASA" → "casa")
+2. For VERBS not in infinitive form (e.g., "comí", "hablando"), return the INFINITIVE form only (e.g., "comer", "hablar")
+3. For NOUNS/ADJECTIVES with gender/number variations:
+   - Remove gender slashes: "viejo/a" → "viejo", "amigo/a" → "amigo"
+   - Use MASCULINE SINGULAR form only (e.g., "gata" → "gato", "bonita" → "bonito")
+4. Keep phrases and function words as-is
+5. Preserve accents and special characters (á, é, í, ó, ú, ñ, ü)
 
 Words to validate:
 {chr(10).join(f"{i+1}. {word}" for i, word in enumerate(words))}
@@ -105,7 +108,8 @@ If valid=false, provide reason."""
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.2,
-                max_tokens=2000
+                max_tokens=2000,
+                timeout=30.0  # Explicit timeout for production
             )
 
             result_text = response.choices[0].message.content.strip()
@@ -164,7 +168,8 @@ If valid=false, provide reason."""
                     }
                 ],
                 max_tokens=4000,
-                temperature=0.3  # Low temp for consistent structured output
+                temperature=0.3,  # Low temp for consistent structured output
+                timeout=30.0  # Explicit timeout for production
             )
 
             # Parse response
@@ -222,7 +227,8 @@ Return ONLY valid JSON in this exact format (no markdown, no explanation):
 ]
 
 Rules:
-- Keep original Spanish text exactly as provided (including / for gender variations)
+- Spanish words must be LOWERCASE (e.g., "Hola" → "hola")
+- Spanish words should already be normalized (infinitive verbs, masculine singular nouns/adjectives, no gender slashes)
 - Provide natural English translations
 - For phrases (2+ words), use word_type "phrase"
 - Assign 1-3 most relevant themes (max 3)
