@@ -79,9 +79,11 @@ ACCEPT AND NORMALIZE:
 IMPORTANT NORMALIZATION RULES:
 1. ALL words must be LOWERCASE (e.g., "Hola" → "hola", "CASA" → "casa")
 2. For VERBS not in infinitive form (e.g., "comí", "hablando"), return the INFINITIVE form only (e.g., "comer", "hablar")
-3. For NOUNS/ADJECTIVES with gender/number variations:
+3. For NOUNS/ADJECTIVES - return base dictionary form (SINGULAR, preferably MASCULINE if gender varies):
+   - ALWAYS convert plural to singular: "palabras" → "palabra", "preguntas" → "pregunta", "gatos" → "gato", "casas" → "casa"
+   - For gendered adjectives/nouns with masculine form, use masculine: "gata" → "gato", "bonita" → "bonito", "hermosas" → "hermoso"
+   - For inherently feminine nouns (no masculine exists), keep feminine singular: "palabra", "pregunta", "casa", "mesa"
    - Remove gender slashes: "viejo/a" → "viejo", "amigo/a" → "amigo"
-   - Use MASCULINE SINGULAR form only (e.g., "gata" → "gato", "bonita" → "bonito")
 4. Keep phrases and function words as-is
 5. Preserve accents and special characters (á, é, í, ó, ú, ñ, ü)
 

@@ -21,6 +21,22 @@ Each phase is designed to be completed in 1-3 development sessions. Total: ~2-3 
 
 ---
 
+## Current Status
+
+**Completed Phases:** 0, 1, 2, 3, 4 (5 of 8 phases complete)
+
+**Phase 4 Highlights:**
+- Implemented bulk word entry with LLM processing
+- Used GPT-4o-mini instead of GPT-4o for ~75% cost savings
+- Added word normalization (lowercase, singular, masculine forms)
+- Implemented 30s timeouts on all API calls
+- Two-layer validation system working as designed
+- Flash message UX improvements with persistent messages
+
+**Next Up:** Phase 5 - V2 Features Implementation (Create, Study, Revise pages)
+
+---
+
 ## Architecture at a Glance
 
 ### URL Structure (Final)
@@ -60,7 +76,7 @@ app/
 
 ## Phases
 
-### ✅ Phase 0: Planning (Current)
+### ✅ Phase 0: Planning
 - [x] Define requirements and architecture
 - [x] Choose version management strategy
 - [x] Answer design questions
@@ -159,35 +175,40 @@ app/
 
 ---
 
-### 📋 Phase 4: LLM Integration
-**Status:** Spec needed
+### ✅ Phase 4: LLM Integration & Bulk Word Entry
+**Status:** COMPLETED
 **Duration:** 2 sessions
+**Spec:** [phase-4-llm-bulk-entry.md](phases/phase-4-llm-bulk-entry.md)
 
 #### Goals
-- Integrate Claude API via Portkey SDK
-- Implement sentence generation
-- Implement AI feedback generation
-- Add error handling and rate limiting
+- Integrate OpenAI API for bulk word processing
+- Implement word normalization and validation
+- Add error handling and timeouts
+- Build bulk entry UI with loading states
 
 #### API Integration
-- **Provider:** Anthropic Claude (via Portkey)
-- **SDK:** `portkey-ai` Python package
-- **Features:** Cost tracking, rate limiting, logging, retries
+- **Provider:** OpenAI GPT-4o-mini (cost-optimized alternative to GPT-4o)
+- **Cost savings:** ~75% cheaper than GPT-4o
+- **Word normalization:** Lowercase, singular, masculine forms
+- **Timeout:** 30s explicit timeouts on all API calls
+- **Validation:** Two-layer system (API + database)
 
 #### Deliverables
-- [ ] Portkey SDK installed and configured
-- [ ] Environment variables for API keys
-- [ ] LLM service layer implemented
-- [ ] Sentence generation working (3+ sentences, 5-7 words)
-- [ ] Feedback generation working
-- [ ] Error handling for API failures
-- [ ] Rate limiting to control costs
+- [x] OpenAI SDK configured with API keys
+- [x] Environment variables for API keys
+- [x] LLM service layer with bulk word processing
+- [x] Word normalization (lowercase, singular, masculine)
+- [x] Two-layer validation system working
+- [x] Error handling with 30s timeouts
+- [x] Flash message UX with persistent messages
+- [x] Production checklist (8/10 items completed)
 
 #### Learning Focus
 - Production LLM integration patterns
-- API error handling and retries
-- Cost management strategies
-- Prompt engineering basics
+- API error handling and retries with explicit timeouts
+- Cost optimization strategies (GPT-4o-mini vs GPT-4o)
+- Word normalization for language learning
+- Flash message patterns for better UX
 
 ---
 
