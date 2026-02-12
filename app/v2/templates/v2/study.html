@@ -4,10 +4,27 @@
 
 {% block v2_content %}
 <div class="max-w-3xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-6 text-center">
+        <h1 class="text-2xl font-bold text-gray-900">Study Flashcards</h1>
+        <p class="mt-1 text-gray-600">Learn new words with AI-generated examples</p>
+    </div>
+
     <!-- Filter Bar -->
     <div class="bg-white rounded-lg shadow p-4 mb-6">
         <h3 class="text-sm font-medium text-gray-700 mb-3">Filter Study Words</h3>
         <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Type Filter (moved first) -->
+            <select name="word_type" onchange="this.form.submit()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                <option value="">All Types</option>
+                <option value="verb" {% if filters.word_type == 'verb' %}selected{% endif %}>Verbs</option>
+                <option value="noun" {% if filters.word_type == 'noun' %}selected{% endif %}>Nouns</option>
+                <option value="adjective" {% if filters.word_type == 'adjective' %}selected{% endif %}>Adjectives</option>
+                <option value="adverb" {% if filters.word_type == 'adverb' %}selected{% endif %}>Adverbs</option>
+                <option value="phrase" {% if filters.word_type == 'phrase' %}selected{% endif %}>Phrases</option>
+            </select>
+
             <!-- Theme Filter -->
             <select name="theme" onchange="this.form.submit()"
                     class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
@@ -24,17 +41,6 @@
                 <option value="other" {% if filters.theme == 'other' %}selected{% endif %}>Other</option>
             </select>
 
-            <!-- Type Filter -->
-            <select name="word_type" onchange="this.form.submit()"
-                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
-                <option value="">All Types</option>
-                <option value="verb" {% if filters.word_type == 'verb' %}selected{% endif %}>Verbs</option>
-                <option value="noun" {% if filters.word_type == 'noun' %}selected{% endif %}>Nouns</option>
-                <option value="adjective" {% if filters.word_type == 'adjective' %}selected{% endif %}>Adjectives</option>
-                <option value="adverb" {% if filters.word_type == 'adverb' %}selected{% endif %}>Adverbs</option>
-                <option value="phrase" {% if filters.word_type == 'phrase' %}selected{% endif %}>Phrases</option>
-            </select>
-
             <!-- Clear Filters Button -->
             <a href="{{ url_for('v2.study') }}"
                class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-center transition">
@@ -42,6 +48,9 @@
             </a>
         </form>
     </div>
+
+    <!-- Flash Message Container -->
+    <div id="flash-message-container"></div>
 
     {% if word %}
     <!-- Flashcard -->
@@ -101,10 +110,17 @@
             Next Word →
         </a>
 
-        <button onclick="markLearned({{ word.id }})"
-                class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition">
+        {% if word.is_learned %}
+        <button disabled
+                class="px-6 py-3 bg-gray-300 text-gray-500 rounded-lg font-medium cursor-not-allowed">
+            ✓ Already Learned
+        </button>
+        {% else %}
+        <button id="mark-learned-btn" onclick="markLearned({{ word.id }})"
+                class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition shadow-sm">
             ✓ Mark as Learned
         </button>
+        {% endif %}
     </div>
 
     {% else %}
@@ -140,6 +156,40 @@
 
 {% block v2_scripts %}
 <script>
+function showFlashMessage(message, type = 'success') {
+    const container = document.getElementById('flash-message-container');
+    const bgColor = type === 'success' ? 'bg-green-50' : 'bg-red-50';
+    const borderColor = type === 'success' ? 'border-green-200' : 'border-red-200';
+    const textColor = type === 'success' ? 'text-green-800' : 'text-red-800';
+    const iconColor = type === 'success' ? 'text-green-600' : 'text-red-600';
+
+    const messageId = 'flash-' + Date.now();
+    const flashHTML = `
+        <div id="${messageId}" class="${bgColor} border ${borderColor} ${textColor} px-4 py-3 rounded-lg mb-4 flex items-center justify-between shadow-sm">
+            <div class="flex items-center">
+                <svg class="h-5 w-5 ${iconColor} mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>${message}</span>
+            </div>
+            <button onclick="closeFlashMessage('${messageId}')" class="ml-4 ${textColor} hover:${textColor} opacity-70 hover:opacity-100">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    `;
+
+    container.innerHTML = flashHTML;
+}
+
+function closeFlashMessage(messageId) {
+    const message = document.getElementById(messageId);
+    if (message) {
+        message.remove();
+    }
+}
+
 async function generateExamples(wordId) {
     const btn = document.getElementById('generate-btn');
     const loading = document.getElementById('loading');
@@ -159,14 +209,14 @@ async function generateExamples(wordId) {
             // Reload to show examples
             window.location.reload();
         } else {
-            alert('Error: ' + data.error);
+            showFlashMessage('Error: ' + data.error, 'error');
             btn.disabled = false;
             btn.classList.remove('hidden');
             loading.classList.add('hidden');
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to generate examples. Please try again.');
+        showFlashMessage('Failed to generate examples. Please try again.', 'error');
         btn.disabled = false;
         btn.classList.remove('hidden');
         loading.classList.add('hidden');
@@ -174,6 +224,12 @@ async function generateExamples(wordId) {
 }
 
 async function markLearned(wordId) {
+    const btn = document.getElementById('mark-learned-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Marking...';
+    }
+
     try {
         const response = await fetch(`/v2/api/study/mark-learned/${wordId}`, {
             method: 'POST'
@@ -182,15 +238,25 @@ async function markLearned(wordId) {
         const data = await response.json();
 
         if (data.success) {
-            // Show success message and load next word
-            alert('Word marked as learned!');
-            window.location.reload();
+            showFlashMessage('Word marked as learned!', 'success');
+            // Wait a moment for user to see the message, then reload
+            setTimeout(() => {
+                window.location.href = '{{ url_for("v2.study", theme=filters.theme, word_type=filters.word_type) }}';
+            }, 800);
         } else {
-            alert('Error: ' + data.error);
+            showFlashMessage('Error: ' + data.error, 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '✓ Mark as Learned';
+            }
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to mark word as learned. Please try again.');
+        showFlashMessage('Failed to mark word as learned. Please try again.', 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '✓ Mark as Learned';
+        }
     }
 }
 </script>

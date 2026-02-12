@@ -4,10 +4,28 @@
 
 {% block v2_content %}
 <div class="max-w-3xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-6 text-center">
+        <h1 class="text-2xl font-bold text-gray-900">Practice Writing</h1>
+        <p class="mt-1 text-gray-600">Write sentences and get AI feedback</p>
+    </div>
+
     <!-- Filter Bar (same as Study page) -->
     <div class="bg-white rounded-lg shadow p-4 mb-6">
         <h3 class="text-sm font-medium text-gray-700 mb-3">Filter Practice Words</h3>
         <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Type Filter (moved first) -->
+            <select name="word_type" onchange="this.form.submit()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                <option value="">All Types</option>
+                <option value="verb" {% if filters.word_type == 'verb' %}selected{% endif %}>Verbs</option>
+                <option value="noun" {% if filters.word_type == 'noun' %}selected{% endif %}>Nouns</option>
+                <option value="adjective" {% if filters.word_type == 'adjective' %}selected{% endif %}>Adjectives</option>
+                <option value="adverb" {% if filters.word_type == 'adverb' %}selected{% endif %}>Adverbs</option>
+                <option value="phrase" {% if filters.word_type == 'phrase' %}selected{% endif %}>Phrases</option>
+            </select>
+
+            <!-- Theme Filter -->
             <select name="theme" onchange="this.form.submit()"
                     class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
                 <option value="">All Themes</option>
@@ -21,16 +39,6 @@
                 <option value="home" {% if filters.theme == 'home' %}selected{% endif %}>Home</option>
                 <option value="health" {% if filters.theme == 'health' %}selected{% endif %}>Health</option>
                 <option value="other" {% if filters.theme == 'other' %}selected{% endif %}>Other</option>
-            </select>
-
-            <select name="word_type" onchange="this.form.submit()"
-                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
-                <option value="">All Types</option>
-                <option value="verb" {% if filters.word_type == 'verb' %}selected{% endif %}>Verbs</option>
-                <option value="noun" {% if filters.word_type == 'noun' %}selected{% endif %}>Nouns</option>
-                <option value="adjective" {% if filters.word_type == 'adjective' %}selected{% endif %}>Adjectives</option>
-                <option value="adverb" {% if filters.word_type == 'adverb' %}selected{% endif %}>Adverbs</option>
-                <option value="phrase" {% if filters.word_type == 'phrase' %}selected{% endif %}>Phrases</option>
             </select>
 
             <a href="{{ url_for('v2.revise') }}"
