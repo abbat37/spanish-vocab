@@ -86,10 +86,11 @@ app/
 
 ---
 
-### 📋 Phase 1: Restructure for Versioning
-**Status:** Ready to implement
+### ✅ Phase 1: Restructure for Versioning
+**Status:** COMPLETED
 **Spec:** [phase-1-version-restructure.md](phase-1-version-restructure.md)
-**Duration:** 1-2 sessions
+**Completed:** 2026-02-10
+**Duration:** 1 session
 
 #### Goals
 - Restructure existing app into versioned architecture
@@ -99,21 +100,21 @@ app/
 - Add version switcher navbar
 
 #### Deliverables
-- [ ] V1 works at `/v1/*` with all existing features
-- [ ] Auth routes at root (`/login`, `/register`, `/logout`)
-- [ ] Root URL redirects to `/v1/`
-- [ ] V2 placeholder page at `/v2/`
-- [ ] Version switcher in navbar
-- [ ] All tests passing
-- [ ] Production deployment successful
+- [x] V1 works at `/v1/*` with all existing features
+- [x] Auth routes at root (`/login`, `/register`, `/logout`)
+- [x] Root URL redirects to `/v1/`
+- [x] V2 placeholder page at `/v2/`
+- [x] Version switcher in navbar
+- [x] All tests passing
+- [x] Production deployment successful
 
-#### Key Files to Create/Modify
-- Create: `app/shared/extensions.py`
-- Create: `app/v1/__init__.py` (blueprint factory)
-- Create: `app/v2/__init__.py` (placeholder)
-- Create: `app/templates/base.html` (shared navbar)
-- Modify: `app/__init__.py` (register versioned blueprints)
-- Move: All existing code to `app/v1/`
+#### Key Files Created/Modified
+- Created: `app/shared/extensions.py`
+- Created: `app/v1/__init__.py` (blueprint factory)
+- Created: `app/v2/__init__.py` (placeholder)
+- Created: `app/templates/base.html` (shared navbar)
+- Modified: `app/__init__.py` (register versioned blueprints)
+- Moved: All existing code to `app/v1/`
 
 #### Learning Focus
 - Flask Blueprint URL prefixing
@@ -122,8 +123,10 @@ app/
 
 ---
 
-### 📋 Phase 2: Build V2 Scaffold
-**Status:** Spec needed (will create after Phase 1)
+### ✅ Phase 2: Build V2 Scaffold
+**Status:** COMPLETED
+**Spec:** [phase-2-v2-scaffold.md](phase-2-v2-scaffold.md)
+**Completed:** 2026-02-10
 **Duration:** 1 session
 
 #### Goals
@@ -133,10 +136,12 @@ app/
 - Make dashboard accessible from both versions
 
 #### Deliverables
-- [ ] V2 routes with placeholder content
-- [ ] Basic HTML templates for create/study/revise
-- [ ] Dashboard shows combined stats (v1 + v2)
-- [ ] Navigation works smoothly
+- [x] V2 routes with placeholder content
+- [x] Basic HTML templates for create/study/revise
+- [x] Dashboard shows combined stats (v1 + v2)
+- [x] Navigation works smoothly
+- [x] Tailwind CSS styling implemented
+- [x] Mobile-responsive design
 
 #### Learning Focus
 - Route organization for feature-based architecture
@@ -145,9 +150,11 @@ app/
 
 ---
 
-### 📋 Phase 3: V2 Database Schema
-**Status:** Spec needed
-**Duration:** 1-2 sessions
+### ✅ Phase 3: V2 Database Schema
+**Status:** COMPLETED
+**Spec:** [phase-3-v2-database-schema.md](phase-3-v2-database-schema.md)
+**Completed:** 2026-02-11
+**Duration:** 1 session
 
 #### Goals
 - Design v2 tables for new data model
@@ -158,15 +165,16 @@ app/
 #### New Tables
 - `v2_words` - User's custom vocabulary
 - `v2_generated_examples` - AI-generated sentences
-- `v2_learned_words` - Learning progress
-- `v2_practice_attempts` - Practice history with feedback
+- `v2_practice_attempts` - Practice history with AI feedback
 
 #### Deliverables
-- [ ] Migration files created
-- [ ] V2 models implemented
-- [ ] Migrations tested locally
-- [ ] Migrations applied in production
-- [ ] Database backup taken
+- [x] Migration files created
+- [x] V2 models implemented
+- [x] Migrations tested locally
+- [x] Migrations applied in production
+- [x] Database backup taken
+- [x] Model relationships configured
+- [x] Indexes added for performance
 
 #### Learning Focus
 - Database schema evolution
@@ -177,8 +185,9 @@ app/
 
 ### ✅ Phase 4: LLM Integration & Bulk Word Entry
 **Status:** COMPLETED
+**Spec:** [phase-4-llm-bulk-entry.md](phase-4-llm-bulk-entry.md)
+**Completed:** 2026-02-12
 **Duration:** 2 sessions
-**Spec:** [phase-4-llm-bulk-entry.md](phases/phase-4-llm-bulk-entry.md)
 
 #### Goals
 - Integrate OpenAI API for bulk word processing

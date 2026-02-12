@@ -22,9 +22,13 @@ Specs progress through these statuses:
 
 ## Current Specs
 
-| Spec | Status | Priority | Estimated Time |
-|------|--------|----------|----------------|
-| [PostgreSQL Migration](postgres-migration.md) | draft | High | 3-4 hours |
+| Spec | Status | Priority | Completed |
+|------|--------|----------|-----------|
+| [Phase 1: Version Restructure](phase-1-version-restructure.md) | done | High | 2026-02-10 |
+| [Phase 2: V2 Scaffold](phase-2-v2-scaffold.md) | done | High | 2026-02-10 |
+| [Phase 3: V2 Database Schema](phase-3-v2-database-schema.md) | done | High | 2026-02-11 |
+| [Phase 4: LLM Integration](phase-4-llm-bulk-entry.md) | done | High | 2026-02-12 |
+| [PostgreSQL Migration](postgres-migration.md) | draft | Medium | TBD |
 
 ## How to Use Specs
 
