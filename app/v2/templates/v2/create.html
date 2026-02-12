@@ -91,7 +91,7 @@
 
         {% if words %}
         <!-- Card-based layout for all screen sizes -->
-        <div class="space-y-3">
+        <div class="space-y-3" id="word-cards-container">
             {% for word in words %}
             <div class="word-card bg-white border-b border-gray-200 p-6 hover:bg-gray-50 transition"
                  data-spanish="{{ word.spanish }}"
@@ -145,6 +145,18 @@
                 </div>
             </div>
             {% endfor %}
+        </div>
+
+        <!-- Empty state for filtered results (hidden by default, shown by JS) -->
+        <div id="no-results-state" class="hidden text-center py-12 bg-white rounded-lg border-2 border-dashed border-gray-300">
+            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No words match your filters</h3>
+            <p class="text-gray-600 mb-4">Try adjusting your search or filter criteria.</p>
+            <button onclick="clearAllFilters()" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition">
+                Clear All Filters
+            </button>
         </div>
         {% else %}
         <div class="text-center py-12">
@@ -392,6 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const data = await response.json();
                 if (data.success) {
+                    // Close modal and reload without showing success message (to avoid blink)
                     closeEditModal();
                     window.location.reload();
                 } else {
@@ -664,6 +677,8 @@ function applyFilters() {
     const selectedTheme = filterTheme.value;
 
     const wordCards = document.querySelectorAll('.word-card');
+    const noResultsState = document.getElementById('no-results-state');
+    let visibleCount = 0;
 
     wordCards.forEach(card => {
         const spanish = card.dataset.spanish.toLowerCase();
@@ -685,10 +700,32 @@ function applyFilters() {
         // Show/hide card
         if (searchMatch && typeMatch && themeMatch) {
             card.style.display = '';
+            visibleCount++;
         } else {
             card.style.display = 'none';
         }
     });
+
+    // Show/hide empty state based on visible cards
+    if (noResultsState) {
+        if (visibleCount === 0 && (searchTerm || selectedType || selectedTheme)) {
+            noResultsState.classList.remove('hidden');
+        } else {
+            noResultsState.classList.add('hidden');
+        }
+    }
+}
+
+function clearAllFilters() {
+    const searchInput = document.getElementById('search-input');
+    const filterType = document.getElementById('filter-type');
+    const filterTheme = document.getElementById('filter-theme');
+
+    if (searchInput) searchInput.value = '';
+    if (filterType) filterType.value = '';
+    if (filterTheme) filterTheme.value = '';
+
+    applyFilters();
 }
 </script>
 {% endblock %}
