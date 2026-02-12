@@ -5,9 +5,9 @@
 {% block v2_content %}
 <div class="max-w-3xl mx-auto">
     <!-- Page Header -->
-    <div class="mb-6 text-center">
-        <h1 class="text-2xl font-bold text-gray-900">Practice Writing</h1>
-        <p class="mt-1 text-gray-600">Write sentences and get AI feedback</p>
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900">Practice Writing</h1>
+        <p class="mt-2 text-gray-600">Write sentences and get AI feedback</p>
     </div>
 
     <!-- Filter Bar (same as Study page) -->
@@ -191,6 +191,10 @@ async function submitPractice() {
                 sentence: sentence
             })
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const data = await response.json();
 
