@@ -19,12 +19,16 @@ def register_study_routes(bp):
         # Get filter parameters
         theme = request.args.get('theme', '')
         word_type = request.args.get('word_type', '')
+        learned_only = request.args.get('learned_only', '') == 'on'
 
-        # Build query for unlearned words
-        query = V2Word.query.filter_by(
-            user_id=current_user.id,
-            is_learned=False
-        )
+        # Build query - by default show all words, filter if learned_only is checked
+        query = V2Word.query.filter_by(user_id=current_user.id)
+
+        # Filter by learned status
+        if learned_only:
+            # Show only learned words
+            query = query.filter_by(is_learned=True)
+        # else: show all words (both learned and unlearned)
 
         # Apply filters
         if theme:
@@ -36,7 +40,7 @@ def register_study_routes(bp):
         word = query.order_by(db.func.random()).first()
 
         if not word:
-            return render_template('v2/study.html', word=None, filters={'theme': theme, 'word_type': word_type})
+            return render_template('v2/study.html', word=None, filters={'theme': theme, 'word_type': word_type, 'learned_only': learned_only})
 
         # Check if examples exist
         examples = V2GeneratedExample.query.filter_by(word_id=word.id).all()
@@ -46,7 +50,7 @@ def register_study_routes(bp):
             word=word,
             examples=[ex.to_dict() for ex in examples],
             has_examples=len(examples) > 0,
-            filters={'theme': theme, 'word_type': word_type}
+            filters={'theme': theme, 'word_type': word_type, 'learned_only': learned_only}
         )
 
     @bp.route('/api/study/generate-examples/<int:word_id>', methods=['POST'])

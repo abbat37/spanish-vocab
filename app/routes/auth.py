@@ -15,7 +15,7 @@ auth_bp = Blueprint('auth', __name__)
 def register():
     """User registration page"""
     if current_user.is_authenticated:
-        return redirect(url_for('v1_main.index'))
+        return redirect(url_for('v2.dashboard'))
 
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
@@ -58,7 +58,7 @@ def register():
         # Log the user in
         login_user(new_user)
         flash('Account created successfully! Welcome to Spanish Word Learner.', 'success')
-        return redirect(url_for('v1_main.index'))
+        return redirect(url_for('v2.dashboard'))
 
     return render_template('register.html')
 
@@ -67,7 +67,7 @@ def register():
 def login():
     """User login page"""
     if current_user.is_authenticated:
-        return redirect(url_for('v1_main.index'))
+        return redirect(url_for('v2.dashboard'))
 
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
@@ -92,7 +92,7 @@ def login():
 
             # Redirect to next page or index
             next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('v1_main.index'))
+            return redirect(next_page) if next_page else redirect(url_for('v2.dashboard'))
         else:
             flash('Invalid email or password.', 'error')
             return render_template('login.html')

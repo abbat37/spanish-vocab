@@ -43,18 +43,19 @@
                 </select>
 
                 <!-- Clear Filters Button -->
-                <a href="{{ url_for('v2.study') }}"
+                <a href="{{ url_for('v2.study', learned_only=filters.learned_only) }}"
                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-center transition">
                     Clear Filters
                 </a>
             </div>
 
-            <!-- Learned Words Checkbox (disabled on Study page) -->
+            <!-- Learned Only Checkbox (enabled on Study page) -->
             <div class="flex items-center">
-                <input type="checkbox" id="include-learned" name="include_learned" disabled
-                       class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 opacity-50 cursor-not-allowed">
-                <label for="include-learned" class="ml-2 text-sm text-gray-400">
-                    Include Learned Words (only available on Revise page)
+                <input type="checkbox" id="learned-only" name="learned_only" onchange="this.form.submit()"
+                       {% if filters.learned_only %}checked{% endif %}
+                       class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
+                <label for="learned-only" class="ml-2 text-sm text-gray-700">
+                    Learned Only
                 </label>
             </div>
         </form>
@@ -116,7 +117,7 @@
 
     <!-- Action Buttons -->
     <div class="flex justify-between items-center">
-        <a href="{{ url_for('v2.study', theme=filters.theme, word_type=filters.word_type) }}"
+        <a href="{{ url_for('v2.study', theme=filters.theme, word_type=filters.word_type, learned_only=filters.learned_only) }}"
            class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
             Next Word →
         </a>
@@ -268,7 +269,7 @@ async function markLearned(wordId) {
             showFlashMessage('Word marked as learned!', 'success');
             // Wait a moment for user to see the message, then reload
             setTimeout(() => {
-                window.location.href = '{{ url_for("v2.study", theme=filters.theme, word_type=filters.word_type) }}';
+                window.location.href = '{{ url_for("v2.study", theme=filters.theme, word_type=filters.word_type, learned_only=filters.learned_only) }}';
             }, 800);
         } else {
             showFlashMessage('Error: ' + data.error, 'error');

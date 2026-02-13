@@ -42,19 +42,19 @@
                     <option value="other" {% if filters.theme == 'other' %}selected{% endif %}>Other</option>
                 </select>
 
-                <a href="{{ url_for('v2.revise') }}"
+                <a href="{{ url_for('v2.revise', learned_only=filters.learned_only) }}"
                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-center transition">
                     Clear Filters
                 </a>
             </div>
 
-            <!-- Include Unlearned Words Checkbox (enabled on Revise page) -->
+            <!-- Learned Only Checkbox (enabled on Revise page, checked by default) -->
             <div class="flex items-center">
-                <input type="checkbox" id="include-unlearned" name="include_unlearned" onchange="this.form.submit()"
-                       {% if filters.include_unlearned %}checked{% endif %}
+                <input type="checkbox" id="learned-only" name="learned_only" onchange="this.form.submit()"
+                       {% if filters.learned_only %}checked{% endif %}
                        class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
-                <label for="include-unlearned" class="ml-2 text-sm text-gray-700">
-                    Include Unlearned Words
+                <label for="learned-only" class="ml-2 text-sm text-gray-700">
+                    Learned Only
                 </label>
             </div>
         </form>
@@ -92,12 +92,12 @@
         <!-- Action Buttons -->
         <div class="flex justify-between items-center">
             <button id="tip-button" onclick="toggleTip()"
-                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
+                    class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
                 Show Translation
             </button>
-            <a href="{{ url_for('v2.revise', theme=filters.theme, word_type=filters.word_type) }}"
-               class="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium transition">
-                Skip Word
+            <a href="{{ url_for('v2.revise', theme=filters.theme, word_type=filters.word_type, learned_only=filters.learned_only) }}"
+               class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
+                Next Word →
             </a>
             <button id="submit-button" onclick="submitPractice()"
                     class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">

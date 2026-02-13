@@ -19,18 +19,18 @@ def register_revise_routes(bp):
         # Get filter parameters
         theme = request.args.get('theme', '')
         word_type = request.args.get('word_type', '')
-        include_unlearned = request.args.get('include_unlearned', '') == 'on'
+        # Default to checked (learned_only=True) if parameter not present
+        learned_only_param = request.args.get('learned_only', 'on')
+        learned_only = learned_only_param == 'on'
 
-        # Build query - by default show learned words only
+        # Build query
         query = V2Word.query.filter_by(user_id=current_user.id)
 
-        # Filter by learned status
-        if include_unlearned:
-            # Show both learned and unlearned
-            pass
-        else:
+        # Filter by learned status (default: show only learned words)
+        if learned_only:
             # Show only learned words (default)
             query = query.filter_by(is_learned=True)
+        # else: show all words (both learned and unlearned)
 
         # Apply filters
         if theme:
@@ -44,7 +44,7 @@ def register_revise_routes(bp):
         return render_template(
             'v2/revise.html',
             word=word,
-            filters={'theme': theme, 'word_type': word_type, 'include_unlearned': include_unlearned}
+            filters={'theme': theme, 'word_type': word_type, 'learned_only': learned_only}
         )
 
     @bp.route('/api/revise/submit', methods=['POST'])

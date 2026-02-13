@@ -211,11 +211,11 @@ def test_login_redirects_to_v1_after_success(client, app):
     }, follow_redirects=False)
 
     assert response.status_code == 302
-    assert '/v1/' in response.location
+    assert '/v2/' in response.location
 
 
 def test_register_redirects_to_v1_after_success(client):
-    """Test that successful registration redirects to /v1/"""
+    """Test that successful registration redirects to /v2/ (default after auth update)"""
     response = client.post('/register', data={
         'email': 'newuser@example.com',
         'password': 'password123',
@@ -223,7 +223,7 @@ def test_register_redirects_to_v1_after_success(client):
     }, follow_redirects=False)
 
     assert response.status_code == 302
-    assert '/v1/' in response.location
+    assert '/v2/' in response.location
 
 
 # =====================================================

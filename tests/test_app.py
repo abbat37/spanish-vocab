@@ -139,7 +139,8 @@ class TestAuthentication:
         }, follow_redirects=True)
 
         assert response.status_code == 200
-        assert b'Welcome back' in response.data
+        # After login, user should be redirected to V2 dashboard
+        assert b'Dashboard - V2' in response.data or b'Welcome to your personal vocabulary builder' in response.data
 
     def test_user_login_wrong_password(self, app, client):
         """Test login with wrong password"""
