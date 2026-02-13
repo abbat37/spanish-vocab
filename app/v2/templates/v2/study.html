@@ -127,7 +127,7 @@
             {% if word.is_learned %}
             <button id="mark-learned-btn" onclick="unmarkLearned({{ word.id }})"
                     class="px-6 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 font-medium transition">
-                Learned (click to unlearn)
+                Learned
             </button>
             {% else %}
             <button id="mark-learned-btn" onclick="markLearned({{ word.id }})"
@@ -315,7 +315,7 @@ async function unmarkLearned(wordId) {
             showFlashMessage('Error: ' + data.error, 'error');
             if (btn) {
                 btn.disabled = false;
-                btn.textContent = 'Learned (click to unlearn)';
+                btn.textContent = 'Learned';
             }
         }
     } catch (error) {
@@ -323,7 +323,7 @@ async function unmarkLearned(wordId) {
         showFlashMessage('Failed to unmark word. Please try again.', 'error');
         if (btn) {
             btn.disabled = false;
-            btn.textContent = 'Learned (click to unlearn)';
+            btn.textContent = 'Learned';
         }
     }
 }
