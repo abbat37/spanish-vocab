@@ -1,6 +1,8 @@
-# Spanish Vocabulary Learning App
+# Palabrai.com
 
 A production-grade Flask web application for learning Spanish vocabulary through interactive sentence generation and progress tracking.
+
+**Live at:** https://palabrai.com
 
 ## Features
 
@@ -46,7 +48,7 @@ A production-grade Flask web application for learning Spanish vocabulary through
 - **Web Server**: Nginx (reverse proxy with SSL termination)
 - **SSL/TLS**: Let's Encrypt (auto-renewal via certbot)
 - **Hosting**: AWS EC2
-- **Domain**: DuckDNS (free DNS service)
+- **Domain**: palabrai.com (GoDaddy)
 - **CI/CD**: GitHub Actions with automated testing and deployment
 
 ### Testing & Quality
@@ -697,7 +699,7 @@ For issues or questions:
 
 ---
 
-**Live Site:** https://spanish-vocab.duckdns.org
+**Live Site:** https://palabrai.com
 **Repository:** https://github.com/abbat37/spanish-vocab
 
-Made with ❤️ for Spanish learners and aspiring web developers
+Made with ❤️ by Palabrai.com

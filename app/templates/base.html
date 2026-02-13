@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Spanish Vocabulary Learning{% endblock %}</title>
+    <title>{% block title %}Palabrai.com{% endblock %}</title>
     <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
 </head>
 <body class="min-h-screen bg-gradient-to-br from-calm-100 via-calm-50 to-primary-50">
@@ -19,7 +19,7 @@
                         </svg>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <h1 class="text-xl font-bold text-calm-900">Spanish Learner</h1>
+                        <h1 class="text-xl font-bold text-calm-900">Palabrai.com</h1>
                         {% if request.path.startswith('/v2') %}
                         <span class="text-xs bg-primary-100 text-primary-800 px-2 py-1 rounded font-semibold hidden sm:inline">V2 Beta</span>
                         {% endif %}

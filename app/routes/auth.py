@@ -57,7 +57,7 @@ def register():
 
         # Log the user in
         login_user(new_user)
-        flash('Account created successfully! Welcome to Spanish Word Learner.', 'success')
+        flash('Account created successfully! Welcome to Palabrai.com.', 'success')
         return redirect(url_for('v2.dashboard'))
 
     return render_template('register.html')

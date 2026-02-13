@@ -1,5 +1,151 @@
 # Deployment Guide
 
+## Custom Domain Setup (GoDaddy)
+
+### Configuring palabrai.com to point to your EC2 instance
+
+1. **Get your EC2 Public IP:**
+   ```bash
+   # SSH into your EC2 instance
+   ssh -i ~/.ssh/spanish-vocab-key.pem ubuntu@YOUR_EC2_IP
+
+   # Get the public IP (if you don't already have it)
+   curl -4 ifconfig.me
+   ```
+
+2. **Configure DNS in GoDaddy:**
+   - Log into your GoDaddy account at https://www.godaddy.com
+   - Go to "My Products" → "Domains" → Click "DNS" next to palabrai.com
+   - Add/Edit the following DNS records:
+
+   **A Record (for palabrai.com):**
+   - Type: `A`
+   - Name: `@` (this represents the root domain)
+   - Value: `YOUR_EC2_PUBLIC_IP`
+   - TTL: `600` seconds (10 minutes)
+
+   **A Record (for www.palabrai.com):**
+   - Type: `A`
+   - Name: `www`
+   - Value: `YOUR_EC2_PUBLIC_IP`
+   - TTL: `600` seconds
+
+   Alternatively, you can use a CNAME for www:
+   - Type: `CNAME`
+   - Name: `www`
+   - Value: `palabrai.com`
+   - TTL: `1 Hour`
+
+3. **Wait for DNS propagation:**
+   DNS changes can take 10 minutes to 48 hours to propagate. Check status with:
+   ```bash
+   # Check if DNS has updated
+   nslookup palabrai.com
+   dig palabrai.com
+   ```
+
+4. **Update Nginx configuration:**
+   SSH into EC2 and update the Nginx server configuration:
+   ```bash
+   sudo nano /etc/nginx/sites-available/spanish-vocab
+   ```
+
+   Update the `server_name` directive to include your new domain:
+   ```nginx
+   server {
+       listen 80;
+       server_name palabrai.com www.palabrai.com spanish-vocab.duckdns.org;
+
+       # ... rest of your config
+   }
+   ```
+
+   Test and reload Nginx:
+   ```bash
+   sudo nginx -t
+   sudo systemctl reload nginx
+   ```
+
+5. **Set up SSL certificate for palabrai.com:**
+   ```bash
+   # Request SSL certificate for the new domain
+   sudo certbot --nginx -d palabrai.com -d www.palabrai.com
+
+   # Follow the prompts to configure HTTPS
+   # Choose option 2 to redirect HTTP to HTTPS
+   ```
+
+   Certbot will automatically:
+   - Obtain SSL certificates from Let's Encrypt
+   - Configure Nginx to use HTTPS
+   - Set up auto-renewal
+
+6. **Verify SSL setup:**
+   ```bash
+   # Check certificate status
+   sudo certbot certificates
+
+   # Test auto-renewal
+   sudo certbot renew --dry-run
+   ```
+
+7. **Update application configuration (if needed):**
+   If your app has domain-specific settings, update `.env`:
+   ```bash
+   cd ~/spanish-vocab
+   nano .env
+   ```
+
+   Add or update:
+   ```
+   DOMAIN=palabrai.com
+   ```
+
+8. **Test the new domain:**
+   - Visit https://palabrai.com in your browser
+   - Visit https://www.palabrai.com in your browser
+   - Both should load your application with a valid SSL certificate
+
+### Troubleshooting DNS/Domain Issues
+
+**DNS not resolving:**
+```bash
+# Check DNS propagation
+nslookup palabrai.com 8.8.8.8  # Check against Google DNS
+nslookup palabrai.com 1.1.1.1  # Check against Cloudflare DNS
+
+# Flush local DNS cache (on your computer)
+# Mac: sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
+# Windows: ipconfig /flushdns
+# Linux: sudo systemd-resolve --flush-caches
+```
+
+**SSL certificate issues:**
+```bash
+# Check certificate
+sudo certbot certificates
+
+# Renew certificate
+sudo certbot renew
+
+# If certificate fails, check Nginx config
+sudo nginx -t
+
+# Check if port 80 and 443 are accessible
+sudo ufw status  # Check firewall
+sudo netstat -tlnp | grep :80
+sudo netstat -tlnp | grep :443
+```
+
+**502 Bad Gateway:**
+```bash
+# Check if app is running
+sudo systemctl status spanish-vocab
+
+# Check Nginx logs
+sudo tail -f /var/log/nginx/error.log
+```
+
 ## Prerequisites on EC2
 
 Before deploying, ensure Node.js is installed on your EC2 server:

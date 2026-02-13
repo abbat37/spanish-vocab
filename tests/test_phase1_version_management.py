@@ -80,10 +80,10 @@ def _seed_test_data():
 # Test 1: Root URL Redirect
 # =====================================================
 def test_root_redirects_to_v1(client):
-    """Test that / redirects to /v1/"""
+    """Test that / redirects to /v2/"""
     response = client.get('/', follow_redirects=False)
     assert response.status_code == 302
-    assert '/v1/' in response.location
+    assert '/v2/' in response.location
 
 
 # =====================================================

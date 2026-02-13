@@ -53,11 +53,11 @@ def create_app(config_name=None):
             traces_sample_rate=0.1
         )
 
-    # ROOT URL: Redirect to /v1/ (default version)
+    # ROOT URL: Redirect to /v2/ (default version)
     @app.route('/')
     def root_redirect():
-        """Redirect root URL to v1"""
-        return redirect(url_for('v1_main.index'))
+        """Redirect root URL to v2"""
+        return redirect(url_for('v2.dashboard'))
 
     # Register SHARED routes (no prefix)
     from app.routes import auth_bp

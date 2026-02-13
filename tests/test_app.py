@@ -205,7 +205,7 @@ class TestRoutes:
 
         response = client.get('/v1/')
         assert response.status_code == 200
-        assert b'Spanish Learner' in response.data
+        assert b'Palabrai.com' in response.data
 
     def test_home_page_has_form(self, app, client):
         """Test that home page contains the form elements"""
