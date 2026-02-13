@@ -4,14 +4,23 @@ A production-grade Flask web application for learning Spanish vocabulary through
 
 ## Features
 
+### V2 (AI-Powered Learning Flow - Active)
+- **Bulk Word Entry**: Add multiple Spanish words at once with AI-powered translation
+- **Smart Study Mode**: Flashcard learning with on-demand AI-generated example sentences
+- **AI Writing Practice**: Write sentences and receive detailed grammar feedback
+- **Progress Tracking**: Mark words as learned/unlearned, filter by learned status
+- **Advanced Filtering**: Filter by word type (verb, noun, adjective) and theme
+- **Full CRUD Operations**: Create, edit, delete, and search your vocabulary
+
+### Core Features
 - **User Authentication**: Secure account creation with email and password
 - **Persistent Progress**: Your learning data is saved to your account, accessible from any device
-- Generate practice sentences in Spanish and English based on themes and word types
-- Track your learning progress with statistics by theme
-- Mark words as learned and monitor your improvement
-- Responsive web interface with real-time updates via AJAX
-- Full-width dashboard for viewing learning statistics
-- Production-ready with HTTPS, database, and automated deployments
+- **Responsive Design**: Mobile-first interface with Tailwind CSS
+- **Production-Ready**: HTTPS, PostgreSQL database, automated CI/CD deployments
+
+### V1 (Legacy - Still Available)
+- Generate practice sentences in Spanish and English
+- Track learning progress with statistics by theme
 
 ## Tech Stack
 
@@ -540,33 +549,38 @@ Mark a word as learned or unlearned (toggle).
 
 ## Features Roadmap
 
-### ✅ Completed (Current)
+### ✅ Phase 5 Complete: V2 Features (Current)
+- **AI-Powered Learning**: OpenAI GPT-4o-mini integration for translations and feedback
+- **Bulk Word Entry**: Add multiple words with automatic translation and normalization
+- **Study Mode**: Flashcard learning with AI-generated example sentences
+- **Writing Practice**: AI feedback on sentence structure, grammar, and naturalness
+- **Full CRUD**: Create, edit, delete, search vocabulary
+- **Smart Filtering**: Filter by type, theme, learned status with URL persistence
+- **V2 as Default**: New users land on AI-powered flow
+
+### ✅ Production Infrastructure
 - **Modular Architecture** (Application factory + Blueprints)
+- **Version Management** (V1 and V2 with isolated blueprints)
 - **User Authentication & Authorization** (Session-based with Flask-Login)
-- **Production Code Structure** (Services layer, model separation)
-- Git version control with GitHub
 - CI/CD Pipeline with GitHub Actions
 - PostgreSQL production database with Flask-Migrate
-- User progress tracking with persistent accounts
-- Unit tests with 90%+ coverage
-- Cloud deployment (AWS EC2)
-- HTTPS with Let's Encrypt
-- Nginx reverse proxy
-- systemd process management
+- Cloud deployment (AWS EC2) with HTTPS
 - Error tracking with Sentry
-- API validation with Marshmallow
 - Rate limiting on API endpoints
-- Auto-seeding database on startup
-- Responsive dashboard (full-width)
+- Unit tests with 90%+ coverage
 - Spec-driven development
-- Password hashing with bcrypt
 
-### 🚧 Next Phase
-- Password reset via email
-- Email notifications for progress milestones
-- OAuth integration (Sign in with Google/GitHub)
+### 🚧 Phase 6: Dashboard & Analytics
+- Comprehensive learning statistics
+- Progress visualization and charts
+- Word mastery tracking
+- Study streak tracking
+
+### 🔮 Phase 7-8: Advanced Features
 - Spaced repetition algorithm
 - Audio pronunciation
+- Password reset via email
+- OAuth integration (Google/GitHub)
 - Mobile app (React Native)
 
 ### 🔮 Future

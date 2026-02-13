@@ -23,17 +23,18 @@ Each phase is designed to be completed in 1-3 development sessions. Total: ~2-3 
 
 ## Current Status
 
-**Completed Phases:** 0, 1, 2, 3, 4 (5 of 8 phases complete)
+**Completed Phases:** 0, 1, 2, 3, 4, 5 (6 of 8 phases complete)
 
-**Phase 4 Highlights:**
-- Implemented bulk word entry with LLM processing
-- Used GPT-4o-mini instead of GPT-4o for ~75% cost savings
-- Added word normalization (lowercase, singular, masculine forms)
-- Implemented 30s timeouts on all API calls
-- Two-layer validation system working as designed
-- Flash message UX improvements with persistent messages
+**Phase 5 Highlights:**
+- Implemented full CRUD operations for vocabulary (Create, Edit, Delete)
+- Built Study page with flashcard learning and AI-generated examples
+- Built Revise page with AI-powered sentence feedback
+- Added filtering by type/theme and "Learned Only" checkbox
+- Implemented learned/unlearned toggle functionality
+- All pages feature responsive design with Tailwind CSS
+- V2 is now the default entry point after login
 
-**Next Up:** Phase 5 - V2 Features Implementation (Create, Study, Revise pages)
+**Next Up:** Phase 6 - Dashboard & Analytics
 
 ---
 
