@@ -118,9 +118,9 @@
         <div class="border-t border-gray-200 my-6"></div>
 
         <!-- Action Buttons -->
-        <div class="flex justify-between items-center">
+        <div class="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
             <a href="{{ url_for('v2.study', theme=filters.theme, word_type=filters.word_type, learned_only='on' if filters.learned_only else None) }}"
-               class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
+               class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition text-center">
                 Next Word →
             </a>
 
