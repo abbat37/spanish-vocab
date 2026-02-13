@@ -19,8 +19,18 @@ def register_revise_routes(bp):
         # Get filter parameters
         theme = request.args.get('theme', '')
         word_type = request.args.get('word_type', '')
-        # Default to 'on' (checked) - show only learned words by default
-        learned_only = request.args.get('learned_only', 'on') == 'on'
+
+        # Determine if this is a form submission or first visit
+        # If ANY query parameter exists (theme, word_type, or learned_only), it's not first visit
+        has_params = bool(request.args)
+
+        if has_params:
+            # Form submitted - check checkbox state
+            # When unchecked, browser doesn't send learned_only parameter
+            learned_only = request.args.get('learned_only') == 'on'
+        else:
+            # First visit - default to checked (show only learned)
+            learned_only = True
 
         # Build query
         query = V2Word.query.filter_by(user_id=current_user.id)

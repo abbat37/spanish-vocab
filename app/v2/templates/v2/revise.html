@@ -50,7 +50,7 @@
 
             <!-- Learned Only Checkbox (enabled on Revise page, checked by default) -->
             <div class="flex items-center">
-                <input type="checkbox" id="learned-only" name="learned_only" onchange="this.form.submit()"
+                <input type="checkbox" id="learned-only" name="learned_only" value="on" onchange="this.form.submit()"
                        {% if filters.learned_only %}checked{% endif %}
                        class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
                 <label for="learned-only" class="ml-2 text-sm text-gray-700">
