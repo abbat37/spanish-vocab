@@ -6,6 +6,7 @@ import os
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from flask import Flask, redirect, url_for
+from flask_login import current_user
 
 from app.config import config
 from app.shared import db, login_manager, limiter, migrate, User
@@ -53,11 +54,13 @@ def create_app(config_name=None):
             traces_sample_rate=0.1
         )
 
-    # ROOT URL: Redirect to /v2/ (default version)
+    # ROOT URL: Redirect to /v2/ if authenticated, otherwise to login
     @app.route('/')
     def root_redirect():
-        """Redirect root URL to v2"""
-        return redirect(url_for('v2.dashboard'))
+        """Redirect root URL to v2 dashboard if logged in, otherwise to login page"""
+        if current_user.is_authenticated:
+            return redirect(url_for('v2.dashboard'))
+        return redirect(url_for('auth.login'))
 
     # Register SHARED routes (no prefix)
     from app.routes import auth_bp
