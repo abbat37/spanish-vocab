@@ -44,7 +44,7 @@
 
                 <!-- Clear Filters Button -->
                 <a href="{{ url_for('v2.study', learned_only='on' if filters.learned_only else None) }}"
-                   class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-center transition">
+                   class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 text-center transition">
                     Clear Filters
                 </a>
             </div>
@@ -96,19 +96,24 @@
                 {% endfor %}
             </div>
             {% else %}
-            <!-- Generate Button -->
+            <!-- Auto-Loading Examples -->
             <div class="text-center py-8">
-                <p class="text-gray-600 mb-4">No examples yet for this word</p>
-                <button id="generate-btn" onclick="generateExamples({{ word.id }})"
-                        class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
-                    Generate Examples with AI
-                </button>
-                <div id="loading" class="hidden mt-4">
+                <div id="loading">
                     <svg class="animate-spin h-8 w-8 mx-auto text-primary-600" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <p class="text-sm text-gray-600 mt-2">Generating examples...</p>
+                    <p class="text-sm text-gray-600 mt-2">Generating examples with AI...</p>
+                </div>
+                <div id="error-state" class="hidden">
+                    <svg class="h-12 w-12 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="text-gray-600 mb-4" id="error-message">Failed to generate examples</p>
+                    <button onclick="retryGenerate({{ word.id }})"
+                            class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
+                        Try Again
+                    </button>
                 </div>
             </div>
             {% endif %}
@@ -120,18 +125,18 @@
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
             <a href="{{ url_for('v2.study', theme=filters.theme, word_type=filters.word_type, learned_only='on' if filters.learned_only else None) }}"
-               class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition text-center">
+               class="px-6 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-medium transition text-center">
                 Next Word →
             </a>
 
             {% if word.is_learned %}
             <button id="mark-learned-btn" onclick="unmarkLearned({{ word.id }})"
-                    class="px-6 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 font-medium transition">
-                Learned
+                    class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition">
+                ✓ Learned
             </button>
             {% else %}
             <button id="mark-learned-btn" onclick="markLearned({{ word.id }})"
-                    class="px-6 py-3 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 font-medium transition">
+                    class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
                 Mark as Learned
             </button>
             {% endif %}
@@ -159,7 +164,7 @@
             </a>
             {% if filters.theme or filters.word_type %}
             <a href="{{ url_for('v2.study') }}"
-               class="inline-block px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
+               class="inline-block px-6 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-medium transition">
                 Clear Filters
             </a>
             {% endif %}
@@ -206,12 +211,11 @@ function closeFlashMessage(messageId) {
 }
 
 async function generateExamples(wordId) {
-    const btn = document.getElementById('generate-btn');
     const loading = document.getElementById('loading');
+    const errorState = document.getElementById('error-state');
 
-    btn.disabled = true;
-    btn.classList.add('hidden');
-    loading.classList.remove('hidden');
+    if (loading) loading.classList.remove('hidden');
+    if (errorState) errorState.classList.add('hidden');
 
     try {
         const response = await fetch(`/v2/api/study/generate-examples/${wordId}`, {
@@ -240,19 +244,38 @@ async function generateExamples(wordId) {
             // Show success message
             showFlashMessage('Examples generated successfully!', 'success');
         } else {
-            showFlashMessage('Error: ' + data.error, 'error');
-            btn.disabled = false;
-            btn.classList.remove('hidden');
-            loading.classList.add('hidden');
+            // Show error state
+            if (loading) loading.classList.add('hidden');
+            if (errorState) {
+                const errorMessage = document.getElementById('error-message');
+                if (errorMessage) errorMessage.textContent = data.error || 'Failed to generate examples';
+                errorState.classList.remove('hidden');
+            }
+            showFlashMessage('Error: ' + (data.error || 'Failed to generate examples'), 'error');
         }
     } catch (error) {
         console.error('Error:', error);
+        // Show error state
+        if (loading) loading.classList.add('hidden');
+        if (errorState) {
+            const errorMessage = document.getElementById('error-message');
+            if (errorMessage) errorMessage.textContent = 'Network error. Please check your connection and try again.';
+            errorState.classList.remove('hidden');
+        }
         showFlashMessage('Failed to generate examples. Please try again.', 'error');
-        btn.disabled = false;
-        btn.classList.remove('hidden');
-        loading.classList.add('hidden');
     }
 }
+
+function retryGenerate(wordId) {
+    generateExamples(wordId);
+}
+
+// Auto-generate examples when page loads if no examples exist
+document.addEventListener('DOMContentLoaded', function() {
+    {% if word and not has_examples %}
+    generateExamples({{ word.id }});
+    {% endif %}
+});
 
 async function markLearned(wordId) {
     const btn = document.getElementById('mark-learned-btn');
@@ -315,7 +338,7 @@ async function unmarkLearned(wordId) {
             showFlashMessage('Error: ' + data.error, 'error');
             if (btn) {
                 btn.disabled = false;
-                btn.textContent = 'Learned';
+                btn.textContent = '✓ Learned';
             }
         }
     } catch (error) {
@@ -323,7 +346,7 @@ async function unmarkLearned(wordId) {
         showFlashMessage('Failed to unmark word. Please try again.', 'error');
         if (btn) {
             btn.disabled = false;
-            btn.textContent = 'Learned';
+            btn.textContent = '✓ Learned';
         }
     }
 }

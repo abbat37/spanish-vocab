@@ -27,7 +27,10 @@ Each phase is designed to be completed in 1-3 development sessions. Total: ~2-3 
 
 **Phase 5 Highlights:**
 - Implemented full CRUD operations for vocabulary (Create, Edit, Delete)
-- Built Study page with flashcard learning and AI-generated examples
+- Built Study page with flashcard learning and auto-generated AI examples
+  - Examples generate automatically when word is shown (no button click needed)
+  - Graceful error handling with retry functionality
+  - "Mark as Learned" styled as primary action
 - Built Revise page with AI-powered sentence feedback
 - Added filtering by type/theme and "Learned Only" checkbox
 - Implemented learned/unlearned toggle functionality

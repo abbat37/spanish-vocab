@@ -43,7 +43,7 @@
                 </select>
 
                 <a href="{{ url_for('v2.revise', learned_only='on' if filters.learned_only else None) }}"
-                   class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-center transition">
+                   class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 text-center transition">
                     Clear Filters
                 </a>
             </div>
@@ -92,11 +92,11 @@
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
             <button id="tip-button" onclick="toggleTip()"
-                    class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
+                    class="px-6 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-medium transition">
                 Show Translation
             </button>
             <a href="{{ url_for('v2.revise', theme=filters.theme, word_type=filters.word_type, learned_only='on' if filters.learned_only else None) }}"
-               class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition text-center">
+               class="px-6 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-medium transition text-center">
                 Next Word →
             </a>
             <button id="submit-button" onclick="submitPractice()"
@@ -165,7 +165,7 @@
             </a>
             {% if filters.theme or filters.word_type %}
             <a href="{{ url_for('v2.revise') }}"
-               class="inline-block px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
+               class="inline-block px-6 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-medium transition">
                 Clear Filters
             </a>
             {% endif %}

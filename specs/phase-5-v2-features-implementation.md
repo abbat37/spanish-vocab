@@ -834,19 +834,25 @@ Due to length, I'll continue with the Study page template and remaining sections
                 {% endfor %}
             </div>
             {% else %}
-            <!-- Generate Button -->
+            <!-- Auto-Generate Examples (happens automatically on page load) -->
             <div class="text-center py-8">
-                <p class="text-gray-600 mb-4">No examples yet for this word</p>
-                <button id="generate-btn" onclick="generateExamples({{ word.id }})"
-                        class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
-                    Generate Examples with AI
-                </button>
-                <div id="loading" class="hidden mt-4">
+                <div id="loading">
                     <svg class="animate-spin h-8 w-8 mx-auto text-primary-600" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <p class="text-sm text-gray-600 mt-2">Generating examples...</p>
+                    <p class="text-sm text-gray-600 mt-2">Generating examples with AI...</p>
+                </div>
+                <!-- Error State (shown if generation fails) -->
+                <div id="error-state" class="hidden">
+                    <svg class="h-12 w-12 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="text-gray-600 mb-4" id="error-message">Failed to generate examples</p>
+                    <button onclick="retryGenerate({{ word.id }})"
+                            class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
+                        Try Again
+                    </button>
                 </div>
             </div>
             {% endif %}
@@ -856,14 +862,21 @@ Due to length, I'll continue with the Study page template and remaining sections
     <!-- Action Buttons -->
     <div class="flex justify-between items-center">
         <a href="{{ url_for('v2.study', theme=filters.theme, word_type=filters.word_type) }}"
-           class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
+           class="px-6 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-medium transition">
             Next Word →
         </a>
 
-        <button onclick="markLearned({{ word.id }})"
+        {% if word.is_learned %}
+        <button onclick="unmarkLearned({{ word.id }})"
                 class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition">
-             Mark as Learned
+            ✓ Learned
         </button>
+        {% else %}
+        <button onclick="markLearned({{ word.id }})"
+                class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium transition">
+            Mark as Learned
+        </button>
+        {% endif %}
     </div>
 
     {% else %}
