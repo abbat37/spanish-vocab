@@ -113,26 +113,29 @@
             </div>
             {% endif %}
         </div>
-    </div>
 
-    <!-- Action Buttons -->
-    <div class="flex justify-between items-center">
-        <a href="{{ url_for('v2.study', theme=filters.theme, word_type=filters.word_type, learned_only=filters.learned_only) }}"
-           class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
-            Next Word →
-        </a>
+        <!-- Divider -->
+        <div class="border-t border-gray-200 my-6"></div>
 
-        {% if word.is_learned %}
-        <button disabled
-                class="px-6 py-3 bg-green-100 text-green-700 rounded-lg font-medium cursor-not-allowed">
-            Learned
-        </button>
-        {% else %}
-        <button id="mark-learned-btn" onclick="markLearned({{ word.id }})"
-                class="px-6 py-3 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 font-medium transition">
-            Mark as Learned
-        </button>
-        {% endif %}
+        <!-- Action Buttons -->
+        <div class="flex justify-between items-center">
+            <a href="{{ url_for('v2.study', theme=filters.theme, word_type=filters.word_type, learned_only=filters.learned_only) }}"
+               class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">
+                Next Word →
+            </a>
+
+            {% if word.is_learned %}
+            <button disabled
+                    class="px-6 py-3 bg-green-100 text-green-700 rounded-lg font-medium cursor-not-allowed">
+                Learned
+            </button>
+            {% else %}
+            <button id="mark-learned-btn" onclick="markLearned({{ word.id }})"
+                    class="px-6 py-3 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 font-medium transition">
+                Mark as Learned
+            </button>
+            {% endif %}
+        </div>
     </div>
 
     {% else %}
