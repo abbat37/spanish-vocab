@@ -125,9 +125,9 @@
             </a>
 
             {% if word.is_learned %}
-            <button disabled
-                    class="px-6 py-3 bg-green-100 text-green-700 rounded-lg font-medium cursor-not-allowed">
-                Learned
+            <button id="mark-learned-btn" onclick="unmarkLearned({{ word.id }})"
+                    class="px-6 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 font-medium transition">
+                Learned (click to unlearn)
             </button>
             {% else %}
             <button id="mark-learned-btn" onclick="markLearned({{ word.id }})"
@@ -287,6 +287,43 @@ async function markLearned(wordId) {
         if (btn) {
             btn.disabled = false;
             btn.textContent = 'Mark as Learned';
+        }
+    }
+}
+
+async function unmarkLearned(wordId) {
+    const btn = document.getElementById('mark-learned-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Unmarking...';
+    }
+
+    try {
+        const response = await fetch(`/v2/api/study/unmark-learned/${wordId}`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showFlashMessage('Word marked as unlearned!', 'success');
+            // Wait a moment for user to see the message, then reload with current filters
+            setTimeout(() => {
+                window.location.reload();
+            }, 800);
+        } else {
+            showFlashMessage('Error: ' + data.error, 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Learned (click to unlearn)';
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showFlashMessage('Failed to unmark word. Please try again.', 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Learned (click to unlearn)';
         }
     }
 }

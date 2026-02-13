@@ -146,3 +146,32 @@ def register_study_routes(bp):
                 'success': False,
                 'error': 'Internal server error'
             }), 500
+
+    @bp.route('/api/study/unmark-learned/<int:word_id>', methods=['POST'])
+    @login_required
+    def unmark_learned(word_id):
+        """Unmark word as learned."""
+        try:
+            word = V2Word.query.filter_by(
+                id=word_id,
+                user_id=current_user.id
+            ).first()
+
+            if not word:
+                return jsonify({
+                    'success': False,
+                    'error': 'Word not found'
+                }), 404
+
+            word.is_learned = False
+            db.session.commit()
+
+            return jsonify({'success': True})
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error unmarking word: {e}")
+            return jsonify({
+                'success': False,
+                'error': 'Internal server error'
+            }), 500
