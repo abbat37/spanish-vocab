@@ -24,6 +24,10 @@ class Config:
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
 
+    # Analytics Configuration (PostHog)
+    POSTHOG_API_KEY = os.getenv('POSTHOG_API_KEY')
+    POSTHOG_HOST = os.getenv('POSTHOG_HOST', 'https://app.posthog.com')
+
 
 class DevelopmentConfig(Config):
     """Development configuration"""
