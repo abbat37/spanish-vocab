@@ -26,7 +26,7 @@ Add the following to your `.env` file:
 ```bash
 # Analytics Configuration (PostHog)
 POSTHOG_API_KEY=phc_your_api_key_here
-POSTHOG_HOST=https://app.posthog.com
+POSTHOG_HOST=https://eu.i.posthog.com  # Use https://app.posthog.com for US, https://eu.i.posthog.com for EU
 ```
 
 For production (EC2 server), add these to your `/etc/environment` or systemd service file.
