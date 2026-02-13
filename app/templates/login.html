@@ -103,5 +103,17 @@
             Your AI-powered Spanish learning platform
         </p>
     </div>
+
+    <!-- PostHog User Identification -->
+    {% if current_user.is_authenticated and config.get('POSTHOG_API_KEY') %}
+    <script>
+        if (window.posthog) {
+            posthog.identify('{{ current_user.id }}', {
+                email: '{{ current_user.email }}'
+            });
+            posthog.capture('user_logged_in');
+        }
+    </script>
+    {% endif %}
 </body>
 </html>

@@ -410,6 +410,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const data = await response.json();
                 if (data.success) {
+                    // Track word edit event
+                    if (window.posthog) {
+                        posthog.capture('word_edited', {
+                            word_id: wordId,
+                            word_type: wordType
+                        });
+                    }
                     // Close modal and reload without showing success message (to avoid blink)
                     closeEditModal();
                     window.location.reload();
@@ -476,6 +483,15 @@ async function processBulkWords() {
             }
             if (stats.rejected > 0) {
                 message += ` (${stats.rejected} invalid word(s) rejected)`;
+            }
+
+            // Track word creation event
+            if (window.posthog && stats.created > 0) {
+                posthog.capture('words_added', {
+                    count: stats.created,
+                    duplicates: stats.duplicates,
+                    rejected: stats.rejected
+                });
             }
 
             // Store success message and errors in sessionStorage to show after reload
@@ -660,6 +676,12 @@ async function confirmDelete() {
         const data = await response.json();
 
         if (data.success) {
+            // Track word deletion event
+            if (window.posthog) {
+                posthog.capture('word_deleted', {
+                    word_id: deleteWordId
+                });
+            }
             closeDeleteModal();
             window.location.reload();
         } else {

@@ -241,6 +241,14 @@ async function generateExamples(wordId) {
             examplesHTML += '</div>';
             examplesSection.innerHTML = examplesHTML;
 
+            // Track examples generated event
+            if (window.posthog) {
+                posthog.capture('examples_generated', {
+                    word_id: wordId,
+                    example_count: data.examples.length
+                });
+            }
+
             // Show success message
             showFlashMessage('Examples generated successfully!', 'success');
         } else {
@@ -272,8 +280,17 @@ function retryGenerate(wordId) {
 
 // Auto-generate examples when page loads if no examples exist
 document.addEventListener('DOMContentLoaded', function() {
-    {% if word and not has_examples %}
+    {% if word %}
+    // Track study session when user views a word
+    if (window.posthog) {
+        posthog.capture('study_session_started', {
+            word_id: {{ word.id }}
+        });
+    }
+
+    {% if not has_examples %}
     generateExamples({{ word.id }});
+    {% endif %}
     {% endif %}
 });
 
@@ -292,6 +309,12 @@ async function markLearned(wordId) {
         const data = await response.json();
 
         if (data.success) {
+            // Track word learned event
+            if (window.posthog) {
+                posthog.capture('word_learned', {
+                    word_id: wordId
+                });
+            }
             showFlashMessage('Word marked as learned!', 'success');
             // Wait a moment for user to see the message, then reload with current filters
             setTimeout(() => {
@@ -329,6 +352,12 @@ async function unmarkLearned(wordId) {
         const data = await response.json();
 
         if (data.success) {
+            // Track word unlearned event
+            if (window.posthog) {
+                posthog.capture('word_unlearned', {
+                    word_id: wordId
+                });
+            }
             showFlashMessage('Word marked as unlearned!', 'success');
             // Wait a moment for user to see the message, then reload with current filters
             setTimeout(() => {

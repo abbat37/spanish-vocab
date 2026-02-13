@@ -182,6 +182,15 @@ const sentenceInput = document.getElementById('sentence');
 const submitButton = document.getElementById('submit-button');
 const feedbackSection = document.getElementById('feedback-section');
 
+// Track revision page view
+{% if word %}
+if (window.posthog) {
+    posthog.capture('revision_session_started', {
+        word_id: wordId
+    });
+}
+{% endif %}
+
 function toggleTip() {
     const translation = document.getElementById('word-translation');
     translation.classList.toggle('hidden');
@@ -259,6 +268,14 @@ async function submitPractice() {
         const data = await response.json();
 
         if (data.success && data.feedback) {
+            // Track sentence revision event
+            if (window.posthog) {
+                posthog.capture('sentence_revised', {
+                    word_id: wordId,
+                    feedback_level: data.feedback.level,
+                    has_corrections: data.feedback.corrections && data.feedback.corrections.length > 0
+                });
+            }
             displayFeedback(data.feedback);
             // Hide button after successful submission
             submitButton.style.display = 'none';
